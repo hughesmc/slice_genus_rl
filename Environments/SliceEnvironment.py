@@ -1,13 +1,13 @@
 import numpy as np
-import random 
-#import theano
+import random
 import copy
 
-class SliceEnv:
+class SliceEnv():
     
     def __init__(self,braid_word=[],max_braid_index=12,max_braid_length=20,inaction_penalty=0.005,starting_knot_strand=1):
         # The maximum length a braid word can be, which is fixed once the environment is instantiated. 
         self.max_braid_length=max_braid_length
+        assert len(braid_word) <= max_braid_length, "Cannot initialize with braid with length longer than max_braid_length"
         # The numpy array that tracks the braid word representing the knot.
         self.word=np.array(braid_word)  
         # This is the bonus that is given to the score whenever an unlinked component is created.
@@ -62,10 +62,59 @@ class SliceEnv:
         # Initiate the score to 0.
         self.score=0
         # Initiate the cursor position.
-        self.cursor=[0,1]
+        self.cursor=np.array([0,1])
         # Run through the different strands.  If any strands corresponding to component number 1 are unlinked, delete them.
         for jjj in range(self.index):
             self.unlinked_strand_check(jjj+1)
+            
+        #self.state_tuple = self.get_state_tuple()
+        self.encoded_state_length=len(self.encode_state())
+        self.action_map={0: "Remove Crosing",
+                         1: "Move Down",
+                         2: "Move Up",
+                         3: "Move Left",
+                         4: "Move Right",
+                         5: "Cut",
+                         6: "Add Positive r2",
+                         7: "Add Negative r2",
+                         8: "Remove r2",
+                         9: "r3",
+                         10: "Far comm",
+                         11: "Add Positive crossing",
+                         12: "Add Negative crossing"}
+        self.inverse_action_map={"Remove Crossing": 0,
+                                 "Move Down": 1,
+                                 "Move Up": 2,
+                                 "Move Left": 3,
+                                 "Move Right": 4,
+                                 "Cut": 5,
+                                 "Add Positive r2": 6,
+                                 "Add Negative r2": 7,
+                                 "Remove r2": 8,
+                                 "r3": 9,
+                                 "Far comm": 10,
+                                 "Add Positive crossing": 11,
+                                 "Add Negative crossing": 12}
+                    
+    
+    #def get_state_tuple(self):
+    #    braid_tuple = []
+    #    #pad zeros
+    #    for i in range(self.max_braid_length - len(self.word)):
+    #        braid_tuple.append(0)
+    #    # add crossings
+    #    for crossing in self.word:
+    #        braid_tuple.append(crossing)
+    #    #add componentlist components
+    #    for component in self.components:
+    #        braid_tuple.append(component)
+    #    #add eulerchar components
+    #    for component in self.components:
+    #        braid_tuple.append(self.eulerchar[component])
+    #    #add cursor positions
+    #    for cursor in self.cursor:
+    #        braid_tuple.append(cursor)
+    #    return tuple(braid_tuple)
         
 
     # Takes as input a required position (corresponding to a letter in the braid word, indexed starting at 0), and an 
@@ -128,9 +177,6 @@ class SliceEnv:
 #####        #if self.cursor[1]>strand:
 #####            #self.cursor[1]-=1
 
-
-
-
     def arrange_components(self):
         current_comp=-2
         temp_eulerlist={1:self.eulerchar[1]}
@@ -143,10 +189,7 @@ class SliceEnv:
                 current_comp-=1
         self.eulerchar=temp_eulerlist
         self.components=np.abs(complist) 
-        
-
-
-        
+                
     # Moves the cursor position up (thinking of the braid as written from top to bottom).
     def move_up(self):
         if self.cursor[0]>=1:
@@ -495,46 +538,47 @@ class SliceEnv:
         print("Is Terminal:\t\t",self.is_Terminal())
     
     # Associating numbers 0 through 13 to the braid word actions defined above.
-    def action(self,actionnumber):
-        old_score=self.score
-        if actionnumber==1:
+    def action(self, action_number):
+        """Associating numbers 0 through 13 to the braid word actions defined above.
+        This is also where the reward function for the MDP is implemented"""
+        old_score=self.eulerchar[1]
+        if action_number==1:
             self.move_down()
-        elif actionnumber==2:
+        elif action_number==2:
             self.move_up()
-        elif actionnumber==3:
+        elif action_number==3:
             self.move_left()
-        elif actionnumber==4:
+        elif action_number==4:
             self.move_right()
-        elif actionnumber==5:
+        elif action_number==5:
             self.cut()
-        elif actionnumber==6:
+        elif action_number==6:
             self.r2_add_pos()
-        elif actionnumber==7:
+        elif action_number==7:
             self.r2_add_neg()
-        elif actionnumber==8:
+        elif action_number==8:
             self.r2_rm()
-        elif actionnumber==9:
+        elif action_number==9:
             self.r3()
-        elif actionnumber==10:
+        elif action_number==10:
             self.far_comm()
-        elif actionnumber==11:
+        elif action_number==11:
             self.add_crossing_pos()
-        elif actionnumber==12:
+        elif action_number==12:
             self.add_crossing_neg()
-        elif actionnumber==0:
+        elif action_number==0:
             self.rm_crossing()
         else:
-            print('Error in Action')
-        # Define a reward that is the change in the value of self.score from before and after the action is taken.  
-        reward=self.score-old_score
-        # If the reward value is zero, then define the reward value to be the negative of the self.inaction_penalty
-        # value.  
-        if reward==0:
-            reward=-1*self.inaction_penalty
-        return reward,self.full_one_hot()
-        
+            assert True==False, "Invalid action passed: {}".format(action_number)
+        for component in self.components:
+            assert component > 0, "Error"
+        encoding=self.encode_state()
+        reward=-self.inaction_penalty+self.eulerchar[1]-old_score
+        terminal=self.is_Terminal()
+        for component in self.components:
+            assert component in self.eulerchar.keys(), "Components and Eulerchar have become misaligned. Components: {} Eulerchar: {}".format(self.components, self.eulerchar)
+        return reward, encoding, int(terminal)    
 
-        
     # One-hot encodes the cursor position and the braid word.  
     def one_hot(self):
         # Initializes the one-hot array.
@@ -559,3 +603,131 @@ class SliceEnv:
             self.ohmat[self.index,jjj]=self.eulerchar[self.components[jjj]]
         foh=np.concatenate((self.one_hot(),np.reshape(self.ohmat,self.index*(self.index+1))))
         return foh
+    
+    def print_braid(self):
+        down_arrow = "\u2193"
+        right_arrow = "\u2192"
+        row = self.cursor[0]
+        column = self.cursor[1]
+        if len(self.word) == 0:
+            print(" ", end="")
+            print(" "*(2*column-1), end='')
+            print(down_arrow)
+            print(" ", end="") 
+            print("| "*(self.index))           
+            print(right_arrow, end='')
+            print("| "*(self.index))
+            return
+        print(" "*(2*column-1)+" ", end='')
+        print(down_arrow)
+        print(" ", end="")
+        print("| "*self.index)
+        i = 1
+        for cross in self.word:
+            if i == row+1:
+                print(right_arrow, end="")
+            else:
+                print(" ", end="")
+            print("| "*(abs(cross)-1), end='')
+            if cross > 0:
+                print(" /  ", end='')
+            else:
+                print(" \  ", end='')
+            print("| "*(self.index - abs(cross) - 1))
+            i += 1
+        if i == row+1:
+            print(right_arrow, end="")
+        else:
+            print(" ", end="")
+        print("| "*self.index)
+    
+    def print_action_sequence(self, action_list, gamma=0.99):
+        self.info()
+        self.print_braid()
+        reward_seq=[]
+        for action in action_list:
+            reward, _, _ = self.action(action)
+            reward_seq.append(reward)
+            print("="*60)
+            print("Action {}: {}".format(action, self.action_map[action]))
+            print("Reward: {}".format(reward))
+            print("="*60)
+            self.info()
+            self.print_braid()
+    
+    def encode_state(self, zero=0, one=1, display=False):
+        """updated encode_state() function. Uses lists instead of numpy arrays. New implementation
+        is 3-4 times faster.
+        By Spencer
+        Encodes our state for input into a neural network
+        The braid, component list, and cursor positions are one-hot-encoded while the Euler 
+        components are simply put in since they are unbounded.
+        braid encoding"""
+        encoded=[]
+        braid_encoding=[]
+        #padded zeros encoding
+        for i in range(self.max_braid_length-len(self.word)):
+            code=[zero for i in range(2*(self.index)-1)]
+            index=self.index-1
+            code[index]=one
+            braid_encoding+=code
+        #crossings encoding
+        for crossing in self.word:
+            code=[zero for i in range(2*(self.index)-1)]
+            index=self.index-1+crossing
+            code[index]=one
+            braid_encoding+=code
+        
+        encoded+=braid_encoding
+        comp_encoding=[]
+        #component list encoding
+        for component in self.components:
+            code=[zero for i in range(self.index+1)]
+            code[component-1]=one
+            comp_encoding+=code
+        encoded+=comp_encoding
+        euler_encoding=[]
+        #Euler list encoding
+        code=[zero for i in range(len(self.components))]
+        try:
+            for i in range(len(self.components)):
+                code[i]=self.eulerchar[self.components[i]]
+        except KeyError:
+            print("Key Error: {}".format(self.components[i]))
+            print("Components: {}".format(self.components))
+            print("Eulerchar: {}".format(self.eulerchar))
+        euler_encoding+=code     
+        encoded+=euler_encoding
+        #Cursor position encoding
+        #row cursor encoding
+        cursor_encoding=[]
+        code=[zero for i in range(self.max_braid_length+1)]
+        index=self.cursor[0]
+        code[index]=one
+        cursor_encoding+=code
+        #column cursor encoding
+        code=[zero for i in range(self.index-1)]
+        index=self.cursor[1]-1
+        code[index]=one
+        cursor_encoding+=code
+        
+        encoded+=cursor_encoding
+        if display:
+            line_length=100
+            print("="*line_length)
+            print("State Encoding")
+            self.info()
+            print("Braid encoding length: {}".format(len(braid_encoding)))
+            print("Braid encoding: {}\n".format(braid_encoding))
+            print("Component encoding length: {}".format(len(comp_encoding)))
+            print("Component encoding: {}\n".format(comp_encoding))
+            print("Euler encoding length: {}".format(len(euler_encoding)))
+            print("Euler encoding: {}\n".format(euler_encoding))
+            print("Cursor encoding length: {}".format(len(cursor_encoding)))
+            print("Cursor encoding: {}]\n".format(cursor_encoding))
+            print("Full encoding length: {}".format(len(encoded)))
+            print("Full encoding: {}\n".format(encoded)) 
+            print("="*line_length)
+        return np.array(encoded)
+
+            
