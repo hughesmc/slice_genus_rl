@@ -1,0 +1,3 @@
+from setuptools import setup
+
+setup(name="gym_SliceEnv", version="1.0.0", install_requires=["gym"])
