@@ -1,15 +1,65 @@
+import argparse
 import gym
-from gym import spaces
+from gym.spaces import Discrete, Box
 import numpy as np
-from gym.utils import seeding
-from ray.rllib.env.env_context import EnvContext
+import os
+import random
 
-class SliceEnv(gym.Env):
-    """An OpenAI Gym environment for builing minimal genus slice surfaces."""
-    metadata = {'render.modes': ['human']}
-    
+import ray
+from ray import tune
+from ray.tune import grid_search
+from ray.rllib.env.env_context import EnvContext
+from ray.rllib.models import ModelCatalog
+from ray.rllib.models.tf.tf_modelv2 import TFModelV2
+from ray.rllib.models.tf.fcnet import FullyConnectedNetwork
+from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+from ray.rllib.models.torch.fcnet import FullyConnectedNetwork as TorchFC
+from ray.rllib.utils.framework import try_import_tf, try_import_torch
+from ray.rllib.utils.test_utils import check_learning_achieved
+
+tf1, tf, tfv = try_import_tf()
+torch, nn = try_import_torch()
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--run",
+    type=str,
+    default="PPO",
+    help="The RLlib-registered algorithm to use.")
+parser.add_argument(
+    "--framework",
+    choices=["tf", "tf2", "tfe", "torch"],
+    default="tf",
+    help="The DL framework specifier.")
+parser.add_argument(
+    "--as-test",
+    action="store_true",
+    help="Whether this script should be run as a test: --stop-reward must "
+    "be achieved within --stop-timesteps AND --stop-iters.")
+parser.add_argument(
+    "--stop-iters",
+    type=int,
+    default=50,
+    help="Number of iterations to train.")
+parser.add_argument(
+    "--stop-timesteps",
+    type=int,
+    default=100000,
+    help="Number of timesteps to train.")
+parser.add_argument(
+    "--stop-reward",
+    type=float,
+    default=0.1,
+    help="Reward at which we stop training.")
+
+
+class SimpleCorridor(gym.Env):
+    """Example of a custom env in which you have to walk down a corridor.
+    You can configure the length of the corridor via the env config."""
+
     def __init__(self, config: EnvContext):
-        # The maximum length a braid word can be, which is fixed once the environment is instantiated. 
+        # The maximum length a braid word can be, which is fixed once the environment is instantiated.
+        self.max_actions = config["corridor_length"] 
         braid_word=[]
         max_braid_index=25
         max_braid_length=175
@@ -113,19 +163,18 @@ class SliceEnv(gym.Env):
                                  "Add Positive crossing": 11,
                                  "Add Negative crossing": 12}
         # Define the action space for Gym, the list of integers from 0 to 12 inclusive.
-        self.action_space = spaces.Discrete(13)
+        self.action_space = Discrete(13)
         # Define the lower and upper bounds for the observations space.
         self.low_bound=np.array([-self.index+1 for jjj in range(self.max_braid_length)]+[0,1]+[1 for jjj in range(self.index)]+[-np.inf for jjj in range(self.index)])
         self.high_bound=np.array([self.index-1 for jjj in range(self.max_braid_length)]+[self.max_braid_length,self.index]+[self.index for jjj in range(self.index)]+[1 for jjj in range(self.index)])
-        self.observation_space=spaces.Box(low=self.low_bound,high=self.high_bound,dtype=np.int64)
+        self.observation_space=Box(low=self.low_bound,high=self.high_bound,dtype=np.int64)
         self.action_count=0
         self.seed()
         self.done=False
         self.action_list={}
-        #self.max_actions=config["max_action_count"]
-        self.max_actions=20
+        #self.max_actions=20
         self.final_penalty=final_penalty
-        metadata = {"render.modes": ["human"]}
+
         
         
     #def get_state_tuple(self):
@@ -728,7 +777,7 @@ class SliceEnv(gym.Env):
     
     
     def reset(self):
-        self.__init__()
+        self.__init__(config)
         return self.complete_state()
     
     
@@ -780,18 +829,108 @@ class SliceEnv(gym.Env):
             assert component in self.eulerchar.keys(), "Components and Eulerchar have become misaligned. Components: {} Eulerchar: {}".format(self.components, self.eulerchar)
         return [state, reward, self.done, self.action_list]  
     
-    
-    def render(self,mode="human"):
-        self.info()
-        print("Action list = ",self.action_list)
-        self.print_braid()
-        
-        
-    def seed(self,seed=None):
-        # For instructions see https://medium.com/distributed-computing-with-ray/anatomy-of-a-custom-environment-for-rllib-327157f269e5
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
-        
+
         
 
             
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class CustomModel(TFModelV2):
+    """Example of a keras custom model that just delegates to an fc-net."""
+
+    def __init__(self, obs_space, action_space, num_outputs, model_config,
+                 name):
+        super(CustomModel, self).__init__(obs_space, action_space, num_outputs,
+                                          model_config, name)
+        self.model = FullyConnectedNetwork(obs_space, action_space,
+                                           num_outputs, model_config, name)
+
+    def forward(self, input_dict, state, seq_lens):
+        return self.model.forward(input_dict, state, seq_lens)
+
+    def value_function(self):
+        return self.model.value_function()
+
+
+class TorchCustomModel(TorchModelV2, nn.Module):
+    """Example of a PyTorch custom model that just delegates to a fc-net."""
+
+    def __init__(self, obs_space, action_space, num_outputs, model_config,
+                 name):
+        TorchModelV2.__init__(self, obs_space, action_space, num_outputs,
+                              model_config, name)
+        nn.Module.__init__(self)
+
+        self.torch_sub_model = TorchFC(obs_space, action_space, num_outputs,
+                                       model_config, name)
+
+    def forward(self, input_dict, state, seq_lens):
+        input_dict["obs"] = input_dict["obs"].float()
+        fc_out, _ = self.torch_sub_model(input_dict, state, seq_lens)
+        return fc_out, []
+
+    def value_function(self):
+        return torch.reshape(self.torch_sub_model.value_function(), [-1])
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    ray.init()
+
+    # Can also register the env creator function explicitly with:
+    # register_env("corridor", lambda config: SimpleCorridor(config))
+    ModelCatalog.register_custom_model(
+        "my_model", TorchCustomModel
+        if args.framework == "torch" else CustomModel)
+
+    config = {
+        "env": SimpleCorridor,  # or "corridor" if registered above
+        "env_config": {
+            "corridor_length": 5,
+        },
+        # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
+        "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
+        "model": {
+            "custom_model": "my_model",
+            "vf_share_layers": True,
+        },
+        "lr": grid_search([1e-2, 1e-4, 1e-6]),  # try different lrs
+        "num_workers": 1,  # parallelism
+        "framework": args.framework,
+    }
+
+    stop = {
+        "training_iteration": args.stop_iters,
+        "timesteps_total": args.stop_timesteps,
+        "episode_reward_mean": args.stop_reward,
+    }
+
+    results = tune.run(args.run, config=config, stop=stop)
+
+    if args.as_test:
+        check_learning_achieved(results, args.stop_reward)
+    ray.shutdown()
