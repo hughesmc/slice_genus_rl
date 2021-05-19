@@ -22,4 +22,6 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 
+module load python
+
 python NONSLICE_Random_knot_generator_with_known_slice_genus.py

@@ -411,16 +411,16 @@ identifier=str(np.random.choice(1000000))
 non_slice_knots=pd.DataFrame(columns=column_names)
 
 max_braid_length=40
-number_of_braids=2
+number_of_braids=5000
 
 while len(non_slice_knots)<number_of_braids:
     braid=random_braid()
     if len(braid[0])<=max_braid_length and braid[-1]<1:
-        input_file=open("nonslicebraidword"+identifier+".brd", "w")
+        input_file=open("tempfiles/nonslicebraidword"+identifier+".brd", "w")
         input_file.write(braid[1])
         input_file.close()
-        os.system("java -jar KnotJob/KnotJob_j8.jar output/nonslicebraidword"+identifier+".brd -s0")
-        output_file=open("output/nonslicebraidword"+identifier+".brd_s0")
+        os.system("java -jar KnotJob/KnotJob_j8.jar tempfiles/nonslicebraidword"+identifier+".brd -s0")
+        output_file=open("tempfiles/nonslicebraidword"+identifier+".brd_s0")
         lines=output_file.readlines()
         string=lines[1]
         s_invariant_string=string.split(":")[-1]
@@ -431,4 +431,4 @@ while len(non_slice_knots)<number_of_braids:
         if len(non_slice_knots)%5000==0:
             print(len(non_slice_knots))
         
-non_slice_knots.to_csv("nonslice"+identifier+".csv",index=False)
+non_slice_knots.to_csv("output/nonslice"+identifier+".csv",index=False)
