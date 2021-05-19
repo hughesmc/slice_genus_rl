@@ -419,8 +419,8 @@ while len(non_slice_knots)<number_of_braids:
         input_file=open("nonslicebraidword"+identifier+".brd", "w")
         input_file.write(braid[1])
         input_file.close()
-        os.system("java -jar KnotJob/KnotJob_j8.jar nonslicebraidword"+identifier+".brd -s0")
-        output_file=open("nonslicebraidword"+identifier+".brd_s0")
+        os.system("java -jar KnotJob/KnotJob_j8.jar output/nonslicebraidword"+identifier+".brd -s0")
+        output_file=open("output/nonslicebraidword"+identifier+".brd_s0")
         lines=output_file.readlines()
         string=lines[1]
         s_invariant_string=string.split(":")[-1]
