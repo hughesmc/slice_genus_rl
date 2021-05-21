@@ -24,14 +24,18 @@ def main ():
     ray.init(ignore_reinit_error=True)
 
     # register the custom environment
-    select_env = "SliceEnv-v0"
-    register_env(select_env, lambda config: SliceEnv())
-    
+    #select_env = "SliceEnv-v0"
+    #register_env(select_env, lambda config: SliceEnv(config))
+    select_env=SliceEnv
 
     # configure the environment and create agent
     config = dqn.DEFAULT_CONFIG.copy()
     config["log_level"] = "WARN"
-    agent = dqn.DQNTrainer(config, env=select_env)
+    config["env_config"]={"max_action_count": 25}
+    
+    
+    agent = dqn.DQNTrainer(env=SliceEnv, config=config)
+    
 
     status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f} saved {}"
     n_iter = 5

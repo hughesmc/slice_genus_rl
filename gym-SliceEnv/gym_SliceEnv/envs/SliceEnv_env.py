@@ -122,8 +122,8 @@ class SliceEnv(gym.Env):
         self.seed()
         self.done=False
         self.action_list={}
-        #self.max_actions=config["max_action_count"]
-        self.max_actions=20
+        #self.max_actions=20
+        self.max_actions=config["max_action_count"]
         self.final_penalty=final_penalty
         metadata = {"render.modes": ["human"]}
         
@@ -728,7 +728,122 @@ class SliceEnv(gym.Env):
     
     
     def reset(self):
-        self.__init__()
+        braid_word=[]
+        max_braid_index=25
+        max_braid_length=175
+        inaction_penalty=0.01
+        final_penalty=20
+        max_action_count=500
+        starting_knot_strand=1
+        self.K1=[12, [1, 2, -3, 4, 5, 6, -7, -8, -7, -6, -5, -4, 3, -2, -1, -4, -3, -2, -7, 6, -9, -8, 7, 6, -5, -4, -3, -10, 11, -10, -9, -8, 7, 6, -5, -4, 6, -5, -5, 6, -7, 6, 5, -6, 8, -7, 9, 8, 7, 6, -7, 10, -9, 8, -7, 6, 5, 4, 3, 2, -6, 5, 4, 3, 7, 6, 5, 4, 5, -7, -7, 6, 7, -8, 7, 9, -11, 10, 9, 8, 7, 7, -6, -5, -7]]
+        self.K2=[14, [1, 2, 3, 4, 5, -6, 7, 7, -8, 7, 6, -5, -4, -3, -2, -1, -7, -9, -8, 7, -6, 10, -9, -8, -7, 6, 5, -4, 3, 2, 4, 3, 6, 7, -6, 5, 8, 7, 6, -11, 12, -11, -10, -9, -8, -7, -6, -13, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, -5, 6, 6, -7, -6, 8, 7, 9, 8, -7, -7, 10, 9, 11, 10, 9, 12, 11, 10, 9, -8, 7, -6, 5, -4, -3, -2, -4, -3, -6, 5, 6, 7, 8, -7, -9, 8, 7, -6, -5, 4, -5, -10, 13, -12, 11, -10, 9, 8, 7, 6, -7, -7]]
+        self.K3=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, -6, 7, -9, 10, 9, -8, -7, 6, -5, -4, -3, -2, -1, -4, 3, -2, -5, 4, -5, -5, 6, -7, 8, 7, -6, 5, -9, -11, 10, -9, -8, -7, 6, 5, -4, 3, 5, -4, 5, 5, -6, 7, 6, -5, 8, 9, -8, -7, -6, 5, -10, 11, -10, -12, 11, -10, -9, -8, -7, -6, -5, 4, -3, 2, -3, -5, 6, 5, 4, 5, 7, 6, -5, 8, 7, 6, 9, 8, 10, 9, -8, -7, -6, 5, 6, -5, -11, 12]]
+        self.K4=[10, [1, 2, 3, 4, 5, -6, 7, -6, -5, -4, -3, -2, -1, 4, 6, -8, 7, 6, -5, -4, 3, 5, -6, -5, 4, 6, 5, -6, -7, -6, -5, -4, -3, -2, -5, 6, 8, -7, 6, -5, -4, 3, 5, -4, 5, -6, 9, 8, 7, -6, 5, -6, -5, -5, 4, -3, 2, -5, 6, -7, 6, -8, -9]]
+        self.K5=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]]
+        if len(braid_word)==0:
+            braid_word=self.K1[1]
+        self.max_braid_length=max_braid_length
+        assert len(braid_word) <= max_braid_length, "Cannot initialize with braid with length longer than max_braid_length"
+        # The numpy array that tracks the braid word representing the knot.
+        self.word=np.array(braid_word)  
+        # This is the bonus that is given to the score whenever an unlinked component is created.
+        self.bonus=0 
+        # The penalty given for any action which results in a reward of 0 (should be a positive value).
+        self.inaction_penalty=inaction_penalty
+        # The maximum number of strands that can be used in the braid at any given time (extra strands will be added as
+        # unlinked strands on the knot component are removed).
+        self.index=max_braid_index
+        # A counter that is used to create new labels for components that are introduced when new strands are added 
+        # (following the removal of unlinked strands on the knot component).
+        self.extra_strands=0
+        # I'm not sure what this is, it doesn't seem to show up anywhere else.
+        self.n_comp=1
+        # I'm also not sure what this is, self.reward also doesn't seem to show up anywhere else.
+        self.reward=0
+        # This list should have one entry for each strand in the braid word (self.index number of them), and tracks 
+        # which strands are on the same component.  
+        # For example, if the list is [1,1,2,3,3] it means the first two strands belong to component number 1 of the 
+        # surface created, the third strand belongs to component number 2, while the last two strands again belong to 
+        # the same component, component number 3.
+        self.components=np.zeros(self.index,int)  
+        self.component_count=1
+        # This assigns the component of starting_knot_strand the number 1.
+        self.components[starting_knot_strand-1]=self.component_count
+        self.temp_position=len(self.word)
+        # Starting with the starting_knot_strand, we trace it back through the braid word to see what other strands it 
+        # connects to.
+        self.next_strand=self.traceback(self.temp_position,starting_knot_strand)[0]
+        # Label the next strand on the same component as component number 1, and assign it an Euler characteristic of 0.
+        self.components[self.next_strand-1]=self.component_count
+        self.eulerchar={1:0}
+        # Iterate through the rest of the strands of the knot component, assigning them component number 1.
+        while self.next_strand!=starting_knot_strand:
+            self.next_strand=self.traceback(self.temp_position,self.next_strand)[0]
+            self.components[self.next_strand-1]=self.component_count
+        # Iterate now through the remaining strands, assigning increasing values for each subsequent component.
+        for jjj in range(self.index):
+            if self.components[jjj]==0:
+                self.component_count+=1
+                self.new_starting_knot_strand=jjj+1
+                self.components[self.new_starting_knot_strand-1]=self.component_count
+                self.next_strand=self.traceback(self.temp_position,self.new_starting_knot_strand)[0]
+                self.components[self.next_strand-1]=self.component_count
+                while self.next_strand!=self.new_starting_knot_strand:
+                    self.next_strand=self.traceback(self.temp_position,self.next_strand)[0]
+                    self.components[self.next_strand-1]=self.component_count   
+        # Assign an euler characteristic of 1 to any components other than the knot component.
+        for key in self.components:
+            if key!=1:
+                self.eulerchar[key]=1
+        # Initiate the score to 0.
+        self.score=0
+        # Initiate the cursor position.
+        self.cursor=np.array([0,1])
+        # Run through the different strands.  If any strands corresponding to component number 1 are unlinked, delete them.
+        for jjj in range(self.index):
+            self.unlinked_strand_check(jjj+1)
+        #self.state_tuple = self.get_state_tuple()
+        self.encoded_state_length=len(self.encode_state())
+        self.action_map={0: "Remove Crosing",
+                         1: "Move Down",
+                         2: "Move Up",
+                         3: "Move Left",
+                         4: "Move Right",
+                         5: "Cut",
+                         6: "Add Positive r2",
+                         7: "Add Negative r2",
+                         8: "Remove r2",
+                         9: "r3",
+                         10: "Far comm",
+                         11: "Add Positive crossing",
+                         12: "Add Negative crossing"}
+        self.inverse_action_map={"Remove Crossing": 0,
+                                 "Move Down": 1,
+                                 "Move Up": 2,
+                                 "Move Left": 3,
+                                 "Move Right": 4,
+                                 "Cut": 5,
+                                 "Add Positive r2": 6,
+                                 "Add Negative r2": 7,
+                                 "Remove r2": 8,
+                                 "r3": 9,
+                                 "Far comm": 10,
+                                 "Add Positive crossing": 11,
+                                 "Add Negative crossing": 12}
+        # Define the action space for Gym, the list of integers from 0 to 12 inclusive.
+        self.action_space = spaces.Discrete(13)
+        # Define the lower and upper bounds for the observations space.
+        self.low_bound=np.array([-self.index+1 for jjj in range(self.max_braid_length)]+[0,1]+[1 for jjj in range(self.index)]+[-np.inf for jjj in range(self.index)])
+        self.high_bound=np.array([self.index-1 for jjj in range(self.max_braid_length)]+[self.max_braid_length,self.index]+[self.index for jjj in range(self.index)]+[1 for jjj in range(self.index)])
+        self.observation_space=spaces.Box(low=self.low_bound,high=self.high_bound,dtype=np.int64)
+        self.action_count=0
+        self.seed()
+        self.done=False
+        self.action_list={}
+        #self.max_actions=config["max_action_count"]
+        #self.max_actions=20
+        self.final_penalty=final_penalty
+        metadata = {"render.modes": ["human"]}
         return self.complete_state()
     
     
