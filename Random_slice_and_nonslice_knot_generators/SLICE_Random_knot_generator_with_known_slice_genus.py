@@ -483,7 +483,7 @@ identifier=str(np.random.choice(1000000))
 max_braid_length=40
 number_of_braids=5000
 
-with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
+with open("output/slice"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
 	writer.writerow(column_names)
 
@@ -505,7 +505,7 @@ with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
 			braid_list.append(s_invariant)
 			#slice_knots.loc[len(slice_knots)]=braid_list
 			writer.writerow(braid_list)
-			if jjj%100==0:
+			if jjj%10==0:
 				print("jjj = ",jjj)
 				csv_file.flush()
 			jjj=jjj+1

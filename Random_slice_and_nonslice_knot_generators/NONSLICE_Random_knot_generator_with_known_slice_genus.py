@@ -500,7 +500,7 @@ with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
 			braid_list.append(s_invariant)
 			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
 			writer.writerow(braid_list)
-			if jjj%100==0:
+			if jjj%10==0:
 				print("jjj = ",jjj)
 				csv_file.flush()
 			jjj=jjj+1
