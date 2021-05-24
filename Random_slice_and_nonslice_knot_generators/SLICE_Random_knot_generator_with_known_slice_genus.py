@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 import os
-
+import csv
 
 def random_band(index,start,end,band_sign=0,conjugate_length_st_dev=0.8,sgr_st_dev=0.6):
     if start>end:
@@ -275,7 +275,72 @@ def braid_word_to_string(braid,index):
   for jjj in L:
     braid_string=braid_string+jjj
   return braid_string
-
+  
+  
+def remove_min_R1(braid):
+    b=np.copy(braid)
+    oldLength=len(b)
+    newLength=0
+    while oldLength>newLength:
+        oldLength=len(b)
+        if len(b)==0:
+        	return b
+        if len(np.where(np.abs(b)==min(np.abs(b)))[0])==1:
+            location=np.where(np.abs(b)==min(np.abs(b)))[0][0]
+            b=np.delete(b,location)
+            for jjj in range(len(b)):
+                b[jjj]=b[jjj]-np.sign(b[jjj])
+        newLength=len(b)
+    return b
+    
+    
+def remove_max_R1(braid):
+    b=np.copy(braid)
+    oldLength=len(b)
+    newLength=0
+    while oldLength>newLength:
+        oldLength=len(b)
+        if len(b)==0:
+        	return b
+        if len(np.where(np.abs(b)==max(np.abs(b)))[0])==1:
+            location=np.where(np.abs(b)==max(np.abs(b)))[0][0]
+            b=np.delete(b,location)
+        newLength=len(b)
+    return b
+    
+    
+def remove_R2(braid):
+    b=np.copy(braid)
+    oldLength=len(b)
+    newLength=0
+    while oldLength>newLength:
+        oldLength=len(b)
+        if b[oldLength-1]==-b[0]:
+            b=np.delete(b,np.array([oldLength-1]))
+            b=np.delete(b,np.array([0]))
+        jjj=0
+        while jjj<len(b)-1:
+            if b[jjj]==-b[jjj+1]:
+                b=np.delete(b,np.array([jjj,jjj+1]))
+            else:
+                jjj+=1
+        newLength=len(b)
+    return b
+    
+    
+def simplify_braid(braid):
+    b=np.copy(braid)
+    oldLength=len(b)
+    newLength=0
+    while oldLength>newLength:
+        oldLength=len(b)
+        b=remove_R2(b)
+        b=remove_min_R1(b)
+        b=remove_max_R1(b)
+        b=remove_R2(b)
+        newLength=len(b)
+    return list(b)
+    
 
 def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_dev=1.5,markov_bands_std_dev=1.5,conjugate_length_st_dev=0.8,sgr_st_dev=0.6,max_starting_bands=6,max_markov_bands=2,seed_sign=0,slice_knot=False):
     if len(seed_braid)==0:
@@ -398,23 +463,13 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
         braid=apply_R3(braid,k)
     braid=simplify_R2(braid,all=True)
     braid=random_cut(braid)
-    #print(len(braid))
-    braid_string=braid_word_to_string(braid,index)
+    #print(braid)
+    braid_string=braid_word_to_string(simplify_braid(braid),index)
     return braid,braid_string,index,index-initial_bands-markov_negative_bands-markov_positive_bands-cobordism_negative_bands-cobordism_positive_bands,min(1,index-initial_bands-markov_negative_bands-markov_positive_bands+cobordism_negative_bands+cobordism_positive_bands)
 
 
-column_names=["Braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant"]
 
 
-identifier=str(np.random.choice(1000000))
-
-slice_knots=pd.DataFrame(columns=column_names)
-
-max_braid_length=40
-number_of_braids=5000
-
-while len(slice_knots)<number_of_braids:
-    braid=random_braid(slice_knot=True,conjugate_length_st_dev=1.35,sgr_st_dev=1)
     
     if len(braid[0])<=max_braid_length:
         input_file=open("tempfiles/slicebraidword"+identifier+".brd", "w")
@@ -434,3 +489,49 @@ while len(slice_knots)<number_of_braids:
         
         
 slice_knots.to_csv("output/slice"+identifier+".csv",index=False)
+
+
+
+
+
+
+column_names=["Braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant"]
+
+
+identifier=str(np.random.choice(1000000))
+
+#slice_knots=pd.DataFrame(columns=column_names)
+
+max_braid_length=40
+number_of_braids=5000
+
+with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
+	writer = csv.writer(csv_file, delimiter=',')
+	writer.writerow(column_names)
+
+	jjj=1
+
+	while jjj<number_of_braids:
+		braid=random_braid(slice_knot=True,conjugate_length_st_dev=1.35,sgr_st_dev=1)
+		if len(braid[0])<=max_braid_length:
+			input_file=open("tempfiles/slicebraidword"+identifier+".brd", "w")
+			input_file.write(braid[1])
+			input_file.close()
+			os.system("java -jar KnotJob/KnotJob_j8.jar tempfiles/slicebraidword"+identifier+".brd -s0")
+			output_file=open("tempfiles/slicebraidword"+identifier+".brd_s0")
+			lines=output_file.readlines()
+			string=lines[1]
+			s_invariant_string=string.split(":")[-1]
+			s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
+			braid_list=list(braid)
+			braid_list.append(s_invariant)
+			#slice_knots.loc[len(slice_knots)]=braid_list
+			writer.writerow(braid_list)
+			if jjj%100==0:
+				print("jjj = ",jjj)
+				csv_file.flush()
+			jjj=jjj+1
+	csv_file.flush()
+        
+#slice_knots.to_csv("output/slice"+identifier+".csv",index=False)
+
