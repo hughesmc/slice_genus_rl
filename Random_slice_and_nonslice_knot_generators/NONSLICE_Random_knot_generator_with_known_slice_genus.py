@@ -486,8 +486,7 @@ with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
 
 	while jjj<number_of_braids:
 		braid=random_braid()
-		if len(braid[0])<=max_braid_length and braid[-1]<1:
-			print(braid[1])
+		if len(braid[0])<=max_braid_length and braid[-1]<1 and len(braid[0])>0:
 			input_file=open("tempfiles/nonslicebraidword"+identifier+".brd", "w")
 			input_file.write(braid[1])
 			input_file.close()
