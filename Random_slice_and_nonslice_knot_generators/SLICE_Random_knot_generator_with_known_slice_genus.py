@@ -470,28 +470,6 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
 
 
 
-    
-    if len(braid[0])<=max_braid_length:
-        input_file=open("tempfiles/slicebraidword"+identifier+".brd", "w")
-        input_file.write(braid[1])
-        input_file.close()
-        os.system("java -jar KnotJob/KnotJob_j8.jar tempfiles/slicebraidword"+identifier+".brd -s0")
-        output_file=open("tempfiles/slicebraidword"+identifier+".brd_s0")
-        lines=output_file.readlines()
-        string=lines[1]
-        s_invariant_string=string.split(":")[-1]
-        s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
-        braid_list=list(braid)
-        braid_list.append(s_invariant)
-        slice_knots.loc[len(slice_knots)]=braid_list
-        if len(slice_knots)%5000==0:
-            print(len(slice_knots))
-        
-        
-slice_knots.to_csv("output/slice"+identifier+".csv",index=False)
-
-
-
 
 
 
