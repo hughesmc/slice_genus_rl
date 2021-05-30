@@ -3,45 +3,98 @@ from gym import spaces
 import numpy as np
 from gym.utils import seeding
 from ray.rllib.env.env_context import EnvContext
+from randomKnotGenerator import random_braid
+
+
+
 
 class SliceEnv(gym.Env):
     """An OpenAI Gym environment for builing minimal genus slice surfaces."""
     metadata = {'render.modes': ['human']}
     
     def __init__(self, config: EnvContext):
+        
+        self.MP_knots={
+        "K1": [12, [1, 2, -3, 4, 5, 6, -7, -8, -7, -6, -5, -4, 3, -2, -1, -4, -3, -2, -7, 6, -9, -8, 7, 6, -5, -4, -3, -10, 11, -10, -9, -8, 7, 6, -5, -4, 6, -5, -5, 6, -7, 6, 5, -6, 8, -7, 9, 8, 7, 6, -7, 10, -9, 8, -7, 6, 5, 4, 3, 2, -6, 5, 4, 3, 7, 6, 5, 4, 5, -7, -7, 6, 7, -8, 7, 9, -11, 10, 9, 8, 7, 7, -6, -5, -7]],
+        "K2": [14, [1, 2, 3, 4, 5, -6, 7, 7, -8, 7, 6, -5, -4, -3, -2, -1, -7, -9, -8, 7, -6, 10, -9, -8, -7, 6, 5, -4, 3, 2, 4, 3, 6, 7, -6, 5, 8, 7, 6, -11, 12, -11, -10, -9, -8, -7, -6, -13, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, -5, 6, 6, -7, -6, 8, 7, 9, 8, -7, -7, 10, 9, 11, 10, 9, 12, 11, 10, 9, -8, 7, -6, 5, -4, -3, -2, -4, -3, -6, 5, 6, 7, 8, -7, -9, 8, 7, -6, -5, 4, -5, -10, 13, -12, 11, -10, 9, 8, 7, 6, -7, -7]],
+        "K3": [13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, -6, 7, -9, 10, 9, -8, -7, 6, -5, -4, -3, -2, -1, -4, 3, -2, -5, 4, -5, -5, 6, -7, 8, 7, -6, 5, -9, -11, 10, -9, -8, -7, 6, 5, -4, 3, 5, -4, 5, 5, -6, 7, 6, -5, 8, 9, -8, -7, -6, 5, -10, 11, -10, -12, 11, -10, -9, -8, -7, -6, -5, 4, -3, 2, -3, -5, 6, 5, 4, 5, 7, 6, -5, 8, 7, 6, 9, 8, 10, 9, -8, -7, -6, 5, 6, -5, -11, 12]],
+        "K4": [10, [1, 2, 3, 4, 5, -6, 7, -6, -5, -4, -3, -2, -1, 4, 6, -8, 7, 6, -5, -4, 3, 5, -6, -5, 4, 6, 5, -6, -7, -6, -5, -4, -3, -2, -5, 6, 8, -7, 6, -5, -4, 3, 5, -4, 5, -6, 9, 8, 7, -6, 5, -6, -5, -5, 4, -3, 2, -5, 6, -7, 6, -8, -9]],
+        "K5": [13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]]
+        }
+        
+        if "max_action_count" in config:
+        	self.max_actions=config["max_action_count"]
+        else: 
+        	self.max_actions=100
+        	
+        	
+        if "starting_word" in config:
+        	self.starting_braid=config["starting_word"]
+        else:
+        	self.starting_braid="random"
+
+        
         # The maximum length a braid word can be, which is fixed once the environment is instantiated. 
-        braid_word=[]
-        max_braid_index=25
-        max_braid_length=175
-        inaction_penalty=0.01
-        final_penalty=20
-        max_action_count=500
-        starting_knot_strand=1
-        self.K1=[12, [1, 2, -3, 4, 5, 6, -7, -8, -7, -6, -5, -4, 3, -2, -1, -4, -3, -2, -7, 6, -9, -8, 7, 6, -5, -4, -3, -10, 11, -10, -9, -8, 7, 6, -5, -4, 6, -5, -5, 6, -7, 6, 5, -6, 8, -7, 9, 8, 7, 6, -7, 10, -9, 8, -7, 6, 5, 4, 3, 2, -6, 5, 4, 3, 7, 6, 5, 4, 5, -7, -7, 6, 7, -8, 7, 9, -11, 10, 9, 8, 7, 7, -6, -5, -7]]
-        self.K2=[14, [1, 2, 3, 4, 5, -6, 7, 7, -8, 7, 6, -5, -4, -3, -2, -1, -7, -9, -8, 7, -6, 10, -9, -8, -7, 6, 5, -4, 3, 2, 4, 3, 6, 7, -6, 5, 8, 7, 6, -11, 12, -11, -10, -9, -8, -7, -6, -13, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, -5, 6, 6, -7, -6, 8, 7, 9, 8, -7, -7, 10, 9, 11, 10, 9, 12, 11, 10, 9, -8, 7, -6, 5, -4, -3, -2, -4, -3, -6, 5, 6, 7, 8, -7, -9, 8, 7, -6, -5, 4, -5, -10, 13, -12, 11, -10, 9, 8, 7, 6, -7, -7]]
-        self.K3=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, -6, 7, -9, 10, 9, -8, -7, 6, -5, -4, -3, -2, -1, -4, 3, -2, -5, 4, -5, -5, 6, -7, 8, 7, -6, 5, -9, -11, 10, -9, -8, -7, 6, 5, -4, 3, 5, -4, 5, 5, -6, 7, 6, -5, 8, 9, -8, -7, -6, 5, -10, 11, -10, -12, 11, -10, -9, -8, -7, -6, -5, 4, -3, 2, -3, -5, 6, 5, 4, 5, 7, 6, -5, 8, 7, 6, 9, 8, 10, 9, -8, -7, -6, 5, 6, -5, -11, 12]]
-        self.K4=[10, [1, 2, 3, 4, 5, -6, 7, -6, -5, -4, -3, -2, -1, 4, 6, -8, 7, 6, -5, -4, 3, 5, -6, -5, 4, 6, 5, -6, -7, -6, -5, -4, -3, -2, -5, 6, 8, -7, 6, -5, -4, 3, 5, -4, 5, -6, 9, 8, 7, -6, 5, -6, -5, -5, 4, -3, 2, -5, 6, -7, 6, -8, -9]]
-        self.K5=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]]
-        if len(braid_word)==0:
-            braid_word=self.K1[1]
-        self.max_braid_length=max_braid_length
-        assert len(braid_word) <= max_braid_length, "Cannot initialize with braid with length longer than max_braid_length"
-        # The numpy array that tracks the braid word representing the knot.
-        self.word=np.array(braid_word)  
+        if "max_braid_length" in config:
+        	self.max_braid_length=config["max_braid_length"]
+        else: 
+        	self.max_braid_length=175
+        
+        
         # This is the bonus that is given to the score whenever an unlinked component is created.
-        self.bonus=0 
+        if "bonus" in config:
+        	self.bonus=config["bonus"]
+        else: 
+        	self.bonus=0
+        	
+        	
         # The penalty given for any action which results in a reward of 0 (should be a positive value).
-        self.inaction_penalty=inaction_penalty
+        if "inaction_penalty" in config:
+        	self.inaction_penalty=config["inaction_penalty"]
+        else: 
+        	self.inaction_penalty=0.01
+        	
+        	
         # The maximum number of strands that can be used in the braid at any given time (extra strands will be added as
         # unlinked strands on the knot component are removed).
-        self.index=max_braid_index
+        if "max_braid_index" in config:
+        	self.index=config["max_braid_index"]
+        else: 
+        	self.index=25   
+        	
+        	
         # A counter that is used to create new labels for components that are introduced when new strands are added 
         # (following the removal of unlinked strands on the knot component).
-        self.extra_strands=0
-        # I'm not sure what this is, it doesn't seem to show up anywhere else.
-        self.n_comp=1
-        # I'm also not sure what this is, self.reward also doesn't seem to show up anywhere else.
-        self.reward=0
+        self.extra_strands=0    
+        
+        
+        if "final_penalty" in config:
+        	self.finaly_penalty=config["finaly_penalty"]
+        else: 
+        	self.final_penalty=20  
+        
+        
+        if "starting_knot_strand" in config:
+        	self.starting_knot_strand=config["starting_knot_strand"]
+        else: 
+        	self.starting_knot_strand=1 
+
+		
+        if self.starting_braid in self.MP_knots:
+            self.starting_word=self.MP_knots[self.starting_braid][1]
+        elif self.starting_braid=="random":
+        	self.starting_word=np.zeros(self.max_braid_length+1)
+        	while len(self.starting_word)>self.max_braid_length:
+        		self.starting_word=random_braid(max_index=self.index)[0]
+        else:
+        	self.starting_word=self.starting_braid
+        	
+		
+		# The numpy array that tracks the braid word representing the knot.
+        self.word=np.array(self.starting_word) 
+        assert len(self.word) <= self.max_braid_length, "Cannot initialize with braid with length longer than max_braid_length"
+        
+
         # This list should have one entry for each strand in the braid word (self.index number of them), and tracks 
         # which strands are on the same component.  
         # For example, if the list is [1,1,2,3,3] it means the first two strands belong to component number 1 of the 
@@ -50,16 +103,16 @@ class SliceEnv(gym.Env):
         self.components=np.zeros(self.index,int)  
         self.component_count=1
         # This assigns the component of starting_knot_strand the number 1.
-        self.components[starting_knot_strand-1]=self.component_count
+        self.components[self.starting_knot_strand-1]=self.component_count
         self.temp_position=len(self.word)
         # Starting with the starting_knot_strand, we trace it back through the braid word to see what other strands it 
         # connects to.
-        self.next_strand=self.traceback(self.temp_position,starting_knot_strand)[0]
+        self.next_strand=self.traceback(self.temp_position,self.starting_knot_strand)[0]
         # Label the next strand on the same component as component number 1, and assign it an Euler characteristic of 0.
         self.components[self.next_strand-1]=self.component_count
         self.eulerchar={1:0}
         # Iterate through the rest of the strands of the knot component, assigning them component number 1.
-        while self.next_strand!=starting_knot_strand:
+        while self.next_strand!=self.starting_knot_strand:
             self.next_strand=self.traceback(self.temp_position,self.next_strand)[0]
             self.components[self.next_strand-1]=self.component_count
         # Iterate now through the remaining strands, assigning increasing values for each subsequent component.
@@ -122,30 +175,7 @@ class SliceEnv(gym.Env):
         self.seed()
         self.done=False
         self.action_list={}
-        #self.max_actions=20
-        self.max_actions=config["max_action_count"]
-        self.final_penalty=final_penalty
         metadata = {"render.modes": ["human"]}
-        
-        
-    #def get_state_tuple(self):
-    #    braid_tuple = []
-    #    #pad zeros
-    #    for i in range(self.max_braid_length - len(self.word)):
-    #        braid_tuple.append(0)
-    #    # add crossings
-    #    for crossing in self.word:
-    #        braid_tuple.append(crossing)
-    #    #add componentlist components
-    #    for component in self.components:
-    #        braid_tuple.append(component)
-    #    #add eulerchar components
-    #    for component in self.components:
-    #        braid_tuple.append(self.eulerchar[component])
-    #    #add cursor positions
-    #    for cursor in self.cursor:
-    #        braid_tuple.append(cursor)
-    #    return tuple(braid_tuple)
         
 
     # Takes as input a required position (corresponding to a letter in the braid word, indexed starting at 0), and an 
