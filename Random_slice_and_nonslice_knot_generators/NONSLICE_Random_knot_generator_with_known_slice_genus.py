@@ -468,7 +468,7 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
     return braid,braid_string,index,index-initial_bands-markov_negative_bands-markov_positive_bands-cobordism_negative_bands-cobordism_positive_bands,min(1,index-initial_bands-markov_negative_bands-markov_positive_bands+cobordism_negative_bands+cobordism_positive_bands)
 
 
-column_names=["Braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant"]
+column_names=["Braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature"]
 
 
 identifier=str(np.random.choice(1000000))
@@ -498,6 +498,19 @@ with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
 			s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
 			braid_list=list(braid)
 			braid_list.append(s_invariant)
+			braid_list.append("NC")
+			braid_list.append("NC")
+			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
+			writer.writerow(braid_list)
+			if jjj%10==0:
+				print("jjj = ",jjj)
+				csv_file.flush()
+			jjj=jjj+1
+		if len(braid[0])<=max_braid_length and braid[-1]>=1:
+			braid_list=list(braid)
+			braid_list.append("NC")
+			braid_list.append(1)
+			braid_list.append(1)
 			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
 			writer.writerow(braid_list)
 			if jjj%10==0:
