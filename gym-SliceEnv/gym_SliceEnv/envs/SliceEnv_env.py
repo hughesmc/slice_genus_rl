@@ -71,7 +71,7 @@ class SliceEnv(gym.Env):
         if "final_penalty" in config:
         	self.finaly_penalty=config["finaly_penalty"]
         else: 
-        	self.final_penalty=20  
+        	self.final_penalty=2*self.max_braid_length  
         
         
         if "starting_knot_strand" in config:
@@ -84,7 +84,7 @@ class SliceEnv(gym.Env):
             self.starting_word=self.MP_knots[self.starting_braid][1]
         elif self.starting_braid=="random":
         	self.starting_word=np.zeros(self.max_braid_length+1)
-        	while len(self.starting_word)>self.max_braid_length:
+        	while len(self.starting_word)>self.max_braid_length or len(self.starting_word)==0:
         		self.starting_word=random_braid(max_index=self.index)[0]
         else:
         	self.starting_word=self.starting_braid
@@ -758,38 +758,17 @@ class SliceEnv(gym.Env):
     
     
     def reset(self):
-        braid_word=[]
-        max_braid_index=25
-        max_braid_length=175
-        inaction_penalty=0.01
-        final_penalty=20
-        max_action_count=500
-        starting_knot_strand=1
-        self.K1=[12, [1, 2, -3, 4, 5, 6, -7, -8, -7, -6, -5, -4, 3, -2, -1, -4, -3, -2, -7, 6, -9, -8, 7, 6, -5, -4, -3, -10, 11, -10, -9, -8, 7, 6, -5, -4, 6, -5, -5, 6, -7, 6, 5, -6, 8, -7, 9, 8, 7, 6, -7, 10, -9, 8, -7, 6, 5, 4, 3, 2, -6, 5, 4, 3, 7, 6, 5, 4, 5, -7, -7, 6, 7, -8, 7, 9, -11, 10, 9, 8, 7, 7, -6, -5, -7]]
-        self.K2=[14, [1, 2, 3, 4, 5, -6, 7, 7, -8, 7, 6, -5, -4, -3, -2, -1, -7, -9, -8, 7, -6, 10, -9, -8, -7, 6, 5, -4, 3, 2, 4, 3, 6, 7, -6, 5, 8, 7, 6, -11, 12, -11, -10, -9, -8, -7, -6, -13, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, -5, 6, 6, -7, -6, 8, 7, 9, 8, -7, -7, 10, 9, 11, 10, 9, 12, 11, 10, 9, -8, 7, -6, 5, -4, -3, -2, -4, -3, -6, 5, 6, 7, 8, -7, -9, 8, 7, -6, -5, 4, -5, -10, 13, -12, 11, -10, 9, 8, 7, 6, -7, -7]]
-        self.K3=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, -6, 7, -9, 10, 9, -8, -7, 6, -5, -4, -3, -2, -1, -4, 3, -2, -5, 4, -5, -5, 6, -7, 8, 7, -6, 5, -9, -11, 10, -9, -8, -7, 6, 5, -4, 3, 5, -4, 5, 5, -6, 7, 6, -5, 8, 9, -8, -7, -6, 5, -10, 11, -10, -12, 11, -10, -9, -8, -7, -6, -5, 4, -3, 2, -3, -5, 6, 5, 4, 5, 7, 6, -5, 8, 7, 6, 9, 8, 10, 9, -8, -7, -6, 5, 6, -5, -11, 12]]
-        self.K4=[10, [1, 2, 3, 4, 5, -6, 7, -6, -5, -4, -3, -2, -1, 4, 6, -8, 7, 6, -5, -4, 3, 5, -6, -5, 4, 6, 5, -6, -7, -6, -5, -4, -3, -2, -5, 6, 8, -7, 6, -5, -4, 3, 5, -4, 5, -6, 9, 8, 7, -6, 5, -6, -5, -5, 4, -3, 2, -5, 6, -7, 6, -8, -9]]
-        self.K5=[13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]]
-        if len(braid_word)==0:
-            braid_word=self.K1[1]
-        self.max_braid_length=max_braid_length
-        assert len(braid_word) <= max_braid_length, "Cannot initialize with braid with length longer than max_braid_length"
+    
+    
+        if self.starting_braid=="random":
+            self.starting_word=np.zeros(self.max_braid_length+1)
+            while len(self.starting_word)>self.max_braid_length or len(self.starting_word)==0:
+                self.starting_word=random_braid(max_index=self.index)[0]
         # The numpy array that tracks the braid word representing the knot.
-        self.word=np.array(braid_word)  
-        # This is the bonus that is given to the score whenever an unlinked component is created.
-        self.bonus=0 
-        # The penalty given for any action which results in a reward of 0 (should be a positive value).
-        self.inaction_penalty=inaction_penalty
-        # The maximum number of strands that can be used in the braid at any given time (extra strands will be added as
-        # unlinked strands on the knot component are removed).
-        self.index=max_braid_index
+        self.word=np.array(self.starting_word)
         # A counter that is used to create new labels for components that are introduced when new strands are added 
         # (following the removal of unlinked strands on the knot component).
         self.extra_strands=0
-        # I'm not sure what this is, it doesn't seem to show up anywhere else.
-        self.n_comp=1
-        # I'm also not sure what this is, self.reward also doesn't seem to show up anywhere else.
-        self.reward=0
         # This list should have one entry for each strand in the braid word (self.index number of them), and tracks 
         # which strands are on the same component.  
         # For example, if the list is [1,1,2,3,3] it means the first two strands belong to component number 1 of the 
@@ -798,16 +777,16 @@ class SliceEnv(gym.Env):
         self.components=np.zeros(self.index,int)  
         self.component_count=1
         # This assigns the component of starting_knot_strand the number 1.
-        self.components[starting_knot_strand-1]=self.component_count
+        self.components[self.starting_knot_strand-1]=self.component_count
         self.temp_position=len(self.word)
         # Starting with the starting_knot_strand, we trace it back through the braid word to see what other strands it 
         # connects to.
-        self.next_strand=self.traceback(self.temp_position,starting_knot_strand)[0]
+        self.next_strand=self.traceback(self.temp_position,self.starting_knot_strand)[0]
         # Label the next strand on the same component as component number 1, and assign it an Euler characteristic of 0.
         self.components[self.next_strand-1]=self.component_count
         self.eulerchar={1:0}
         # Iterate through the rest of the strands of the knot component, assigning them component number 1.
-        while self.next_strand!=starting_knot_strand:
+        while self.next_strand!=self.starting_knot_strand:
             self.next_strand=self.traceback(self.temp_position,self.next_strand)[0]
             self.components[self.next_strand-1]=self.component_count
         # Iterate now through the remaining strands, assigning increasing values for each subsequent component.
@@ -833,33 +812,7 @@ class SliceEnv(gym.Env):
         for jjj in range(self.index):
             self.unlinked_strand_check(jjj+1)
         #self.state_tuple = self.get_state_tuple()
-        self.encoded_state_length=len(self.encode_state())
-        self.action_map={0: "Remove Crosing",
-                         1: "Move Down",
-                         2: "Move Up",
-                         3: "Move Left",
-                         4: "Move Right",
-                         5: "Cut",
-                         6: "Add Positive r2",
-                         7: "Add Negative r2",
-                         8: "Remove r2",
-                         9: "r3",
-                         10: "Far comm",
-                         11: "Add Positive crossing",
-                         12: "Add Negative crossing"}
-        self.inverse_action_map={"Remove Crossing": 0,
-                                 "Move Down": 1,
-                                 "Move Up": 2,
-                                 "Move Left": 3,
-                                 "Move Right": 4,
-                                 "Cut": 5,
-                                 "Add Positive r2": 6,
-                                 "Add Negative r2": 7,
-                                 "Remove r2": 8,
-                                 "r3": 9,
-                                 "Far comm": 10,
-                                 "Add Positive crossing": 11,
-                                 "Add Negative crossing": 12}
+        
         # Define the action space for Gym, the list of integers from 0 to 12 inclusive.
         self.action_space = spaces.Discrete(13)
         # Define the lower and upper bounds for the observations space.
@@ -872,8 +825,6 @@ class SliceEnv(gym.Env):
         self.action_list={}
         #self.max_actions=config["max_action_count"]
         #self.max_actions=20
-        self.final_penalty=final_penalty
-        metadata = {"render.modes": ["human"]}
         return self.complete_state()
     
     

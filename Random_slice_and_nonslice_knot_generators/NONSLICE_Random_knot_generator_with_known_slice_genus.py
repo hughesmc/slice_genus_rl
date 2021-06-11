@@ -465,52 +465,66 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
     braid=random_cut(braid)
     #print(braid)
     braid_string=braid_word_to_string(simplify_braid(braid),index)
-    return braid,braid_string,index,index-initial_bands-markov_negative_bands-markov_positive_bands-cobordism_negative_bands-cobordism_positive_bands,min(1,index-initial_bands-markov_negative_bands-markov_positive_bands+cobordism_negative_bands+cobordism_positive_bands)
+    return braid,simplify_braid(braid),braid_string,index,index-initial_bands-markov_negative_bands-markov_positive_bands-cobordism_negative_bands-cobordism_positive_bands,min(1,index-initial_bands-markov_negative_bands-markov_positive_bands+cobordism_negative_bands+cobordism_positive_bands)
 
 
-column_names=["Braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature"]
+column_names=["Braid word","Simplified braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature","Determinant","Alexander Polynomial"]
 
 
-identifier=str(np.random.choice(1000000))
+identifier=str(np.random.choice(999999999))
+
+print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
 max_braid_length=40
-number_of_braids=5000
+number_of_braids=5
 
-with open("output/nonslice"+identifier+".csv", "w", newline='') as csv_file:
+with open("output/nonSliceWithInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
 	writer.writerow(column_names)
 
 	jjj=1
 
-	while jjj<number_of_braids:
+	while jjj<=number_of_braids:
 		braid=random_braid()
-		if len(braid[0])<=max_braid_length and braid[-1]<1:
-			input_file=open("tempfiles/nonslicebraidword"+identifier+".brd", "w")
-			input_file.write(braid[1])
-			input_file.close()
-			os.system("java -jar KnotJob/KnotJob_j8.jar tempfiles/nonslicebraidword"+identifier+".brd -s0")
-			output_file=open("tempfiles/nonslicebraidword"+identifier+".brd_s0")
-			lines=output_file.readlines()
-			string=lines[1]
-			s_invariant_string=string.split(":")[-1]
-			s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
-			braid_list=list(braid)
-			braid_list.append(s_invariant)
-			braid_list.append("NC")
-			braid_list.append("NC")
-			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
-			writer.writerow(braid_list)
-			if jjj%10==0:
-				print("jjj = ",jjj)
-				csv_file.flush()
-			jjj=jjj+1
-		if len(braid[0])<=max_braid_length and braid[-1]>=1:
-			braid_list=list(braid)
-			braid_list.append("NC")
-			braid_list.append(1)
-			braid_list.append(1)
+		braid_list=list(braid)
+		if len(braid[1])<=max_braid_length:
+			if len(braid[2])>2:
+				input_file=open("tempfiles/nonslicebraidword"+identifier+".brd", "w")
+				input_file.write(braid[2])
+				input_file.close()
+				os.system("java -jar KnotJob/KnotJob_j8.jar tempfiles/nonslicebraidword"+identifier+".brd -s0")
+				output_file=open("tempfiles/nonslicebraidword"+identifier+".brd_s0")
+				lines=output_file.readlines()
+				string=lines[1]
+				s_invariant_string=string.split(":")[-1]
+				s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
+				braid_list.append(s_invariant)
+				if len(braid_list[1])>2:
+					os.system("./Arf_and_signature_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
+					output_file_arf_sig=open("tempfiles/ArfSignature"+identifier+".txt")
+					lines_arf_sig=output_file_arf_sig.readlines()
+					arf=int(lines_arf_sig[0].replace(" ","").replace("\n",""))
+					signature=int(lines_arf_sig[1].replace(" ","").replace("\n",""))
+					determinant=int(lines_arf_sig[2].replace(" ","").replace("\n",""))
+					alexander=str(lines_arf_sig[3].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+					braid_list.append(arf)
+					braid_list.append(signature)
+					braid_list.append(determinant)
+					braid_list.append(alexander)
+				else:
+					braid_list.append(0)
+					braid_list.append(0)
+					braid_list.append(0)
+					braid_list.append(1)
+					braid_list.append("[[0,1]]")
+			else:
+				braid_list.append(0)
+				braid_list.append(0)
+				braid_list.append(0)
+				braid_list.append(1)
+				braid_list.append("[[0,1]]")
 			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
 			writer.writerow(braid_list)
 			if jjj%10==0:
