@@ -342,7 +342,7 @@ def simplify_braid(braid):
     return list(b)
     
 
-def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_dev=1.5,markov_bands_std_dev=1.5,conjugate_length_st_dev=0.8,sgr_st_dev=0.6,max_starting_bands=6,max_markov_bands=2,seed_sign=0,slice_knot=False):
+def random_braid(seed_braid=[],seed_slice_genus=0,max_index=7,initial_bands_std_dev=1.75,markov_bands_std_dev=1.5,conjugate_length_st_dev=1,sgr_st_dev=0.6,max_starting_bands=6,max_markov_bands=3,seed_sign=0,slice_knot=False):
     if len(seed_braid)==0:
       seed_slice_genus=0
     if seed_sign==0:
@@ -454,11 +454,11 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
       #print("split a component (cobordism band): ",permutation_cycle_test(braid,index))
     #print(total_band_connectivity_list)
     #print(len(braid))
-    for lll in range(5):
+    for lll in range(np.random.choice(range(len(braid)))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     braid=simplify_R2(braid,all=True)
-    for lll in range(5):
+    for lll in range(np.random.choice(range(len(braid)))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     braid=simplify_R2(braid,all=True)
@@ -477,8 +477,8 @@ print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
-max_braid_length=40
-number_of_braids=5
+max_braid_length=45
+number_of_braids=10000
 
 with open("output/sliceWithInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')

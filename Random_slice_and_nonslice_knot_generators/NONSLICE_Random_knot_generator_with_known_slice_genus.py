@@ -454,11 +454,11 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=7,initial_bands_std_
       #print("split a component (cobordism band): ",permutation_cycle_test(braid,index))
     #print(total_band_connectivity_list)
     #print(len(braid))
-    for lll in range(5):
+    for lll in range(np.random.choice(range(len(braid)))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     braid=simplify_R2(braid,all=True)
-    for lll in range(5):
+    for lll in range(np.random.choice(range(len(braid)))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     braid=simplify_R2(braid,all=True)
@@ -477,8 +477,8 @@ print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
-max_braid_length=40
-number_of_braids=5
+max_braid_length=45
+number_of_braids=10000
 
 with open("output/nonSliceWithInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
