@@ -342,7 +342,7 @@ def simplify_braid(braid):
     return list(b)
     
 
-def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_dev=1.5,markov_bands_std_dev=1.5,conjugate_length_st_dev=0.8,sgr_st_dev=0.6,max_starting_bands=6,max_markov_bands=2,seed_sign=0,slice_knot=False):
+def random_braid(seed_braid=[],seed_slice_genus=0,max_index=7,initial_bands_std_dev=1.75,markov_bands_std_dev=1.5,conjugate_length_st_dev=1,sgr_st_dev=0.6,max_starting_bands=6,max_markov_bands=3,seed_sign=0,slice_knot=False):
     if len(seed_braid)==0:
       seed_slice_genus=0
     if seed_sign==0:
