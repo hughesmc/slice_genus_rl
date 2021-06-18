@@ -2,5 +2,5 @@ gym-SliceEnv/tmp
 Random_slice_and_nonslice_knot_generators/output
 Random_slice_and_nonslice_knot_generators/tempfiles
 **/.ipynb_checkpoints
-*pycache*
+**/__pycache__
 gym-SliceEnv/gym_SliceEnv.egg-info
