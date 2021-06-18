@@ -458,5 +458,6 @@ def random_braid(seed_braid=[],seed_slice_genus=0,max_index=5,initial_bands_std_
     braid=simplify_R2(braid,all=True)
     braid=random_cut(braid)
     #print(braid)
-    braid_string=braid_word_to_string(simplify_braid(braid),index)
+    #braid_string=braid_word_to_string(simplify_braid(braid),index)
+    braid_string=braid    # Not using the braid string, and it was causing issues when randomly generating braids
     return braid,braid_string,index,index-initial_bands-markov_negative_bands-markov_positive_bands-cobordism_negative_bands-cobordism_positive_bands,min(1,index-initial_bands-markov_negative_bands-markov_positive_bands+cobordism_negative_bands+cobordism_positive_bands)
