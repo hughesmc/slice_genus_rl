@@ -1,5 +1,0 @@
-Braid word,Simplified braid word,Braid string,Braid index,Euler characteristic lower bound,Euler characteristic upper bound,Rasmussen s-invariant,Arf invariant,Signature,Determinant,Alexander Polynomial
-"[-2, 4, -3, -4, 2, 1, -2, 4, 4, 3, -4, 2, -1, -2, 4, 3, 3, -5, -2, 3, -4, -3, 2, 5, -4, 5, 4, -3, -4, -5, 2, 1, 1]","[-2, 4, -3, -4, 2, 1, -2, 4, 4, 3, -4, 2, -1, -2, 4, 3, 3, -5, -2, 3, -4, -3, 2, 5, -4, 5, 4, -3, -4, -5, 2, 1, 1]",bDcdBAbDDCdBabDCCebCdcBEdEDcdeBAA,6,-1,-1,-2,0,2,15,"[[-2,-1],[-1,4],[0,-5],[1,4],[2,-1]]"
-"[-1, 2, -1, -2]","[-1, 2, -1, -2]",aBab,3,1,1,0,0,0,1,"[[0,1]]"
-"[2, 1, 3, 4]",[],,5,1,1,0,0,0,1,"[[0,1]]"
-"[-2, 1]",[],,3,1,1,0,0,0,1,"[[0,1]]"
