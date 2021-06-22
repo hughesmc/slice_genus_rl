@@ -69,7 +69,7 @@ class SliceEnv(gym.Env):
         
         
         if "final_penalty" in config:
-        	self.finaly_penalty=config["finaly_penalty"]
+        	self.final_penalty=config["final_penalty"]
         else: 
         	self.final_penalty=2*self.max_braid_length  
         
