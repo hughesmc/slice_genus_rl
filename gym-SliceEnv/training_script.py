@@ -44,7 +44,7 @@ config["log_level"] = "WARN"
 config["env_config"] = {"max_action_count": 250,
                        "starting_word": knot,
                        "inaction_penalty": 0.05,
-                       "final_penalty": }
+                       "final_penalty": 100}
 
 
 register_env("my_env", env_creator)
