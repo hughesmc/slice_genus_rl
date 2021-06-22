@@ -21,6 +21,11 @@ if len(sys.argv)>1:
 else:
 	knot="random"
 	
+if len(sys.argv)>2:
+	n_iter=sys.argv[2]
+else:
+	n_iter=10000
+	
 time=str(datetime.datetime.now())
 print("time = ",time)
 time=time.replace("-","_")
@@ -36,9 +41,10 @@ def env_creator(env_config):
 
 config = ppo.DEFAULT_CONFIG.copy()
 config["log_level"] = "WARN"
-config["env_config"] = {"max_action_count": 500,
+config["env_config"] = {"max_action_count": 250,
                        "starting_word": knot,
-                       "inaction_penalty": 0.01}
+                       "inaction_penalty": 0.05,
+                       "final_penalty": }
 
 
 register_env("my_env", env_creator)
@@ -68,7 +74,6 @@ shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
 #agent = ppo.PPOTrainer(config, env=select_env)
 
 status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f} saved {}"
-n_iter = 10000
 
 # train a policy with RLlib using PPO
 for n in range(n_iter):
