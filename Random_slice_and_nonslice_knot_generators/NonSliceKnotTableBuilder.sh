@@ -5,7 +5,7 @@
 #SBATCH --ntasks=6   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=4096M   # memory per CPU core
-#SBATCH -J "Petal_Khovanov_table_generator"   # job name
+#SBATCH -J "Nonslice Table Builder"   # job name
 #SBATCH --mail-user=hughesmc@gmail.com   # email address
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END

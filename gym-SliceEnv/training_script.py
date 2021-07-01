@@ -22,7 +22,7 @@ else:
 	knot="random"
 	
 if len(sys.argv)>2:
-	n_iter=sys.argv[2]
+	n_iter=int(sys.argv[2])
 else:
 	n_iter=10000
 	
