@@ -19,7 +19,8 @@ class SliceEnv(gym.Env):
         "K2": [14, [1, 2, 3, 4, 5, -6, 7, 7, -8, 7, 6, -5, -4, -3, -2, -1, -7, -9, -8, 7, -6, 10, -9, -8, -7, 6, 5, -4, 3, 2, 4, 3, 6, 7, -6, 5, 8, 7, 6, -11, 12, -11, -10, -9, -8, -7, -6, -13, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, -5, 6, 6, -7, -6, 8, 7, 9, 8, -7, -7, 10, 9, 11, 10, 9, 12, 11, 10, 9, -8, 7, -6, 5, -4, -3, -2, -4, -3, -6, 5, 6, 7, 8, -7, -9, 8, 7, -6, -5, 4, -5, -10, 13, -12, 11, -10, 9, 8, 7, 6, -7, -7]],
         "K3": [13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, -6, 7, -9, 10, 9, -8, -7, 6, -5, -4, -3, -2, -1, -4, 3, -2, -5, 4, -5, -5, 6, -7, 8, 7, -6, 5, -9, -11, 10, -9, -8, -7, 6, 5, -4, 3, 5, -4, 5, 5, -6, 7, 6, -5, 8, 9, -8, -7, -6, 5, -10, 11, -10, -12, 11, -10, -9, -8, -7, -6, -5, 4, -3, 2, -3, -5, 6, 5, 4, 5, 7, 6, -5, 8, 7, 6, 9, 8, 10, 9, -8, -7, -6, 5, 6, -5, -11, 12]],
         "K4": [10, [1, 2, 3, 4, 5, -6, 7, -6, -5, -4, -3, -2, -1, 4, 6, -8, 7, 6, -5, -4, 3, 5, -6, -5, 4, 6, 5, -6, -7, -6, -5, -4, -3, -2, -5, 6, 8, -7, 6, -5, -4, 3, 5, -4, 5, -6, 9, 8, 7, -6, 5, -6, -5, -5, 4, -3, 2, -5, 6, -7, 6, -8, -9]],
-        "K5": [13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]]
+        "K5": [13, [1, 2, 3, 4, 5, 6, 7, -6, 8, 7, 9, -8, -7, 6, 7, -6, -5, -4, -3, -2, -1, -6, -5, -4, 3, 2, -4, -3, -6, 10, -9, -8, -7, 6, -5, -4, 6, 7, -6, -5, 8, 7, 9, 8, -7, 6, -5, 6, 7, -6, 5, 5, 4, 3, -2, 5, 4, -3, -6, 5, -6, -10, -9, -8, -7, 6, -11, -10, -9, -8, 7, -6, -12, -11, -10, -9, -8, 7, 6, -5, 4, 6, 5, 6, -7, -6, 8, -7, 6, 6, 9, 8, 10, 9, 11, 10, 12, 11]],
+        "H1": [-1, 2, 3, -2, 4, -5, 4, 2, -3, 1, 2, -1, -1, 4, 5, -1, -3, -4, 5, 6, -5, 4, 2, 3, -4, 5]
         }
         
         if "max_action_count" in config:
@@ -63,6 +64,13 @@ class SliceEnv(gym.Env):
         	self.index=25   
         	
         	
+        	
+        # The maximum number of initial strands that will be used when generating a random braid.
+        if "max_initial_index" in config:
+        	self.initial_index=config["max_initial_index"]
+        else: 
+        	self.initial_index=10        	
+        	
         # A counter that is used to create new labels for components that are introduced when new strands are added 
         # (following the removal of unlinked strands on the knot component).
         self.extra_strands=0    
@@ -85,7 +93,7 @@ class SliceEnv(gym.Env):
         elif self.starting_braid=="random":
         	self.starting_word=np.zeros(self.max_braid_length+1)
         	while len(self.starting_word)>self.max_braid_length or len(self.starting_word)==0:
-        		self.starting_word=random_braid(max_index=self.index)[0]
+        		self.starting_word=random_braid(max_initial_index=self.initial_index,slice_knot=True)[0]
         else:
         	self.starting_word=self.starting_braid
         	
@@ -763,7 +771,7 @@ class SliceEnv(gym.Env):
         if self.starting_braid=="random":
             self.starting_word=np.zeros(self.max_braid_length+1)
             while len(self.starting_word)>self.max_braid_length or len(self.starting_word)==0:
-                self.starting_word=random_braid(max_index=self.index)[0]
+                self.starting_word=random_braid(max_initial_index=self.initial_index,slice_knot=True)[0]
         # The numpy array that tracks the braid word representing the knot.
         self.word=np.array(self.starting_word)
         # A counter that is used to create new labels for components that are introduced when new strands are added 
