@@ -48,7 +48,7 @@ config["env_config"] = {"max_action_count": 250,
                        "final_penalty": 100,
                        "max_initial_index": 8,
                        "starting_word": knot,
-                       "inaction_penalty": tune.grid_search([0.05,0.1,0.5]),
+                       "inaction_penalty": tune.grid_search([0.01,0.5,0.1]),
                        "final_penalty": tune.uniform(100,200)}
 config["env"] = "my_env"
 
