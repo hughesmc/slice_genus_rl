@@ -82,7 +82,7 @@ shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
 
 status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f} saved {}"
 
-results = tune.run("PPO", config=config) #, stop=stop)
+results = tune.run("PPO", config=config)#,resources_per_trial={"gpu": 1}) #, stop=stop)
 
 # train a policy with RLlib using PPO
 # for n in range(n_iter):
