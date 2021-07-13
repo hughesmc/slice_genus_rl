@@ -725,7 +725,7 @@ print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
-max_braid_length=25
+max_braid_length=35
 number_of_braids=10000
 
 with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_file:
