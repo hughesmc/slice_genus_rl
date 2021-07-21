@@ -824,13 +824,13 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 						log=log+"upper slice bound = "+str(upper_slice_bound)+"\n"
 						if lower_slice_bound>upper_slice_bound:
 							log=log+"Error: slice genus lower bound is greater than slice genus upper bound."
-							log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file=open("logfiles/type_A_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
 							log_file.write(log)
 							log_file.close()
 							error_counter=error_counter+1
 						if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
 							log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
-							log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file=open("logfiles/type+_B_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
 							log_file.write(log)
 							log_file.close()
 							error_counter=error_counter+1
