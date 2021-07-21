@@ -830,10 +830,13 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 							error_counter=error_counter+1
 						if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
 							log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
-							log_file=open("logfiles/type+_B_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file=open("logfiles/type_B_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
 							log_file.write(log)
 							log_file.close()
 							error_counter=error_counter+1
+							os.system("cp tempfiles/invariants"+identifier+".txt logfiles/"+identifier+"_error"+str(error_counter))
+							os.system("cp tempfiles/braidword"+identifier+".brd_s0 logfiles/"+identifier+"_error"+str(error_counter))
+							os.system("cp tempfiles/braidword"+identifier+".brd logfiles/"+identifier+"_error"+str(error_counter))
 						os.remove("tempfiles/invariants"+identifier+".txt")
 						writer.writerow(braid_list)
 						if jjj%10==0:
