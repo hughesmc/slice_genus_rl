@@ -834,10 +834,11 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 							log_file.write(log)
 							log_file.close()
 							error_counter=error_counter+1
-							os.system("mkdir ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)) 
-							os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/invariants"+identifier+".txt ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")							
-							os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/braidword"+identifier+".brd_s0 ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")
-							os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/braidword"+identifier+".brd ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")
+							os._exit
+							#os.mkdir("~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)) 
+							#os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/invariants"+identifier+".txt ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")							
+							#os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/braidword"+identifier+".brd_s0 ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")
+							#os.system("cp ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/tempfiles/braidword"+identifier+".brd ~/compute/Git_Repositories/slice-genus-and-band-rank-rl/Random_slice_and_nonslice_knot_generators/logfiles/"+identifier+"_error"+str(error_counter)+"/")
 						os.remove("tempfiles/invariants"+identifier+".txt")
 						writer.writerow(braid_list)
 						if jjj%10==0:
