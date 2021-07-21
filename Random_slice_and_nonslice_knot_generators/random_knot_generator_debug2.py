@@ -763,7 +763,7 @@ print("Identifier string = ",identifier)
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
 max_braid_length=25
-number_of_braids=500
+number_of_braids=10000
 
 with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
@@ -773,10 +773,10 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 	
 	error_counter=0
 
-	while jjj<=number_of_braids:
+	while jjj<2:
 		log=""
-		braid=random_braid()
-		braid_list=list(braid)
+		braid=[[-1,-1,-1],[-1,-1,-1],"aaa",2,-1,-1]
+		braid_list=[[-1,-1,-1],[-1,-1,-1],"aaa",2,-1,-1]
 		if len(braid[1])<=max_braid_length:
 			if len(braid[2])>2:
 				input_file=open("tempfiles/braidword"+identifier+".brd", "w")
@@ -813,22 +813,12 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 							braid_list.append(lower_slice_bound)
 							braid_list.append(upper_slice_bound)
 							os.remove("tempfiles/invariants"+identifier+".txt")
-							log=log+"arf = "+str(arf)+"\n"
-							log=log+"signature = "+str(signature)+"\n"
-							log=log+"determinant = "+str(determinant)+"\n"
-							log=log+"alexander polynomial = "+str(alexander)+"\n"
-							log=log+"jones polynomial = "+str(jones)+"\n"
-							log=log+"khovanov polynomial = "+str(khovanov)+"\n"
-							log=log+"lower slice bound = "+str(lower_slice_bound)+"\n"
-							log=log+"upper slice bound = "+str(upper_slice_bound)+"\n"
 							if lower_slice_bound>upper_slice_bound:
-								log=log+"Error: slice genus lower bound is greater than slice genus upper bound."
 								log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
 								log_file.write(log)
 								log_file.close()
 								error_counter=error_counter+1
-							if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
-								log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
+							if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
 								log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
 								log_file.write(log)
 								log_file.close()
@@ -838,9 +828,9 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 						braid_list.append(0)
 						braid_list.append(0)
 						braid_list.append(1)
-						braid_list.append("A[[0,1]]")
-						braid_list.append("A[[0, 1]]")
-						braid_list.append("A[[-1, 0, 1], [1, 0, 1]]")
+						braid_list.append("[[0,1]]")
+						braid_list.append("[[0, 1]]")
+						braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
 						braid_list.append(1)
 						braid_list.append(1)
 			else:
@@ -848,9 +838,9 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(1)
-				braid_list.append("A[[0,1]]")
-				braid_list.append("A[[0, 1]]")
-				braid_list.append("A[[-1, 0, 1], [1, 0, 1]]")
+				braid_list.append("[[0,1]]")
+				braid_list.append("[[0, 1]]")
+				braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
 				braid_list.append(1)
 				braid_list.append(1)
 			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
