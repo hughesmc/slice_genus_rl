@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import csv
 import random,re
+from datetime import datetime
 
 
 def random_band(index,start,end,band_sign=0,conjugate_length_st_dev=0.8,sgr_st_dev=0.6):
@@ -756,14 +757,17 @@ def bounded_random_braid(bound=30,seed_braid="maybe",slice_knot="maybe",max_init
 
 column_names=["Braid word","Simplified braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature","Determinant","Alexander Polynomial","Jones Polynomial","Khovanov Polynomial","Slice genus lower bound","Slice genus upper bound"]
 
-identifier=str(np.random.choice(999999999))
+now=datetime.now()
+date_time = now.strftime("%m_%d_%Y_%H_%M_%S_%f_")
+
+identifier=date_time+str(np.random.choice(999999999))
 
 print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
 max_braid_length=25
-number_of_braids=500
+number_of_braids=10000
 
 with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
@@ -838,21 +842,21 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 						braid_list.append(0)
 						braid_list.append(0)
 						braid_list.append(1)
-						braid_list.append("A[[0,1]]")
-						braid_list.append("A[[0, 1]]")
-						braid_list.append("A[[-1, 0, 1], [1, 0, 1]]")
-						braid_list.append(1)
-						braid_list.append(1)
+						braid_list.append("[[0,1]]")
+						braid_list.append("[[0, 1]]")
+						braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
+						braid_list.append(0)
+						braid_list.append(0)
 			else:
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(1)
-				braid_list.append("A[[0,1]]")
-				braid_list.append("A[[0, 1]]")
-				braid_list.append("A[[-1, 0, 1], [1, 0, 1]]")
-				braid_list.append(1)
-				braid_list.append(1)
+				braid_list.append("[[0,1]]")
+				braid_list.append("[[0, 1]]")
+				braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
+				braid_list.append(0)
+				braid_list.append(0)
 			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
 			writer.writerow(braid_list)
 			if jjj%10==0:
