@@ -795,6 +795,7 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 					s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
 					braid_list.append(s_invariant)
 					os.remove("tempfiles/braidword"+identifier+".brd_s0")
+					os.remove("tempfiles/braidword"+identifier+".brd")
 					if len(braid_list[1])>2:
 						os.system("./invariant_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
 						if os.path.isfile("tempfiles/invariants"+identifier+".txt"):
