@@ -794,76 +794,69 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 					s_invariant_string=string.split(":")[-1]
 					s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
 					braid_list.append(s_invariant)
+					os.system("./invariant_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
+					if os.path.isfile("tempfiles/invariants"+identifier+".txt"):
+						output_file_arf_sig=open("tempfiles/invariants"+identifier+".txt")
+						lines_arf_sig=output_file_arf_sig.readlines()
+						arf=int(lines_arf_sig[0].replace(" ","").replace("\n",""))
+						signature=int(lines_arf_sig[1].replace(" ","").replace("\n",""))
+						determinant=int(lines_arf_sig[2].replace(" ","").replace("\n",""))
+						alexander=str(lines_arf_sig[3].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						jones=str(lines_arf_sig[4].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						khovanov=str(lines_arf_sig[5].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						lower_slice_bound=max((1-braid[5])/2,np.abs(s_invariant)/2,np.abs(signature)/2,arf)
+						upper_slice_bound=(1-braid[4])/2
+						braid_list.append(arf)
+						braid_list.append(signature)
+						braid_list.append(determinant)
+						braid_list.append(alexander)
+						braid_list.append(jones)
+						braid_list.append(khovanov)
+						braid_list.append(lower_slice_bound)
+						braid_list.append(upper_slice_bound)
+						log=log+"arf = "+str(arf)+"\n"
+						log=log+"signature = "+str(signature)+"\n"
+						log=log+"determinant = "+str(determinant)+"\n"
+						log=log+"alexander polynomial = "+str(alexander)+"\n"
+						log=log+"jones polynomial = "+str(jones)+"\n"
+						log=log+"khovanov polynomial = "+str(khovanov)+"\n"
+						log=log+"lower slice bound = "+str(lower_slice_bound)+"\n"
+						log=log+"upper slice bound = "+str(upper_slice_bound)+"\n"
+						if lower_slice_bound>upper_slice_bound:
+							log=log+"Error: slice genus lower bound is greater than slice genus upper bound."
+							log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file.write(log)
+							log_file.close()
+							error_counter=error_counter+1
+						if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
+							log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
+							log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file.write(log)
+							log_file.close()
+							error_counter=error_counter+1
+						os.remove("tempfiles/invariants"+identifier+".txt")
+						writer.writerow(braid_list)
+						if jjj%10==0:
+							print("jjj = ",jjj)
+							csv_file.flush()
+						jjj=jjj+1
 					os.remove("tempfiles/braidword"+identifier+".brd_s0")
 					os.remove("tempfiles/braidword"+identifier+".brd")
-					if len(braid_list[1])>2:
-						os.system("./invariant_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
-						if os.path.isfile("tempfiles/invariants"+identifier+".txt"):
-							output_file_arf_sig=open("tempfiles/invariants"+identifier+".txt")
-							lines_arf_sig=output_file_arf_sig.readlines()
-							arf=int(lines_arf_sig[0].replace(" ","").replace("\n",""))
-							signature=int(lines_arf_sig[1].replace(" ","").replace("\n",""))
-							determinant=int(lines_arf_sig[2].replace(" ","").replace("\n",""))
-							alexander=str(lines_arf_sig[3].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							jones=str(lines_arf_sig[4].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							khovanov=str(lines_arf_sig[5].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							lower_slice_bound=max((1-braid[5])/2,np.abs(s_invariant)/2,np.abs(signature)/2,arf)
-							upper_slice_bound=(1-braid[4])/2
-							braid_list.append(arf)
-							braid_list.append(signature)
-							braid_list.append(determinant)
-							braid_list.append(alexander)
-							braid_list.append(jones)
-							braid_list.append(khovanov)
-							braid_list.append(lower_slice_bound)
-							braid_list.append(upper_slice_bound)
-							os.remove("tempfiles/invariants"+identifier+".txt")
-							log=log+"arf = "+str(arf)+"\n"
-							log=log+"signature = "+str(signature)+"\n"
-							log=log+"determinant = "+str(determinant)+"\n"
-							log=log+"alexander polynomial = "+str(alexander)+"\n"
-							log=log+"jones polynomial = "+str(jones)+"\n"
-							log=log+"khovanov polynomial = "+str(khovanov)+"\n"
-							log=log+"lower slice bound = "+str(lower_slice_bound)+"\n"
-							log=log+"upper slice bound = "+str(upper_slice_bound)+"\n"
-							if lower_slice_bound>upper_slice_bound:
-								log=log+"Error: slice genus lower bound is greater than slice genus upper bound."
-								log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
-								log_file.write(log)
-								log_file.close()
-								error_counter=error_counter+1
-							if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
-								log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
-								log_file=open("logfiles/error_log"+identifier+"error"+str(error_counter)+".txt", "w")
-								log_file.write(log)
-								log_file.close()
-								error_counter=error_counter+1
-					else:
-						braid_list.append(0)
-						braid_list.append(0)
-						braid_list.append(0)
-						braid_list.append(1)
-						braid_list.append("A[[0,1]]")
-						braid_list.append("A[[0, 1]]")
-						braid_list.append("A[[-1, 0, 1], [1, 0, 1]]")
-						braid_list.append(0)
-						braid_list.append(0)
 			else:
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(1)
 				braid_list.append("B[[0,1]]")
-				braid_list.append("B[[0, 1]]")
-				braid_list.append("B[[-1, 0, 1], [1, 0, 1]]")
+				braid_list.append("B[[0,1]]")
+				braid_list.append("B[[-1,0,1], [1,0,1]]")
 				braid_list.append(0)
 				braid_list.append(0)
-			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
-			writer.writerow(braid_list)
-			if jjj%10==0:
-				print("jjj = ",jjj)
-				csv_file.flush()
-			jjj=jjj+1
+				writer.writerow(braid_list)
+				if jjj%10==0:
+					print("jjj = ",jjj)
+					csv_file.flush()
+				jjj=jjj+1
 	csv_file.flush()
         
-#non_slice_knots.to_csv("output/nonslice"+identifier+".csv",index=False)
+
