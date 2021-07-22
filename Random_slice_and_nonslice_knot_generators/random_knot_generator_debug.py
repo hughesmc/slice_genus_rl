@@ -746,7 +746,6 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
     # Convert a simplified version of the braid to a string for use in KnotJob.
     simplified_braid=simplify_braid(braid)
     braid_string=braid_word_to_string(simplified_braid,index)
-    
     log=log+"Final braid "+str(braid)+"\n"
     log=log+"Simplified braid "+str(simplified_braid)+"\n"
     log=log+"Braid string "+braid_string+"\n"
