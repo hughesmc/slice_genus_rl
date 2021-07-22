@@ -744,9 +744,13 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
     # Randomly cut the braid.
     braid=random_cut(braid)
     # Convert a simplified version of the braid to a string for use in KnotJob.
-    braid_string=braid_word_to_string(simplify_braid(braid),index)
+    simplified_braid=simplify_braid(braid)
+    braid_string=braid_word_to_string(simplified_braid,index)
+    
     log=log+"Final braid "+str(braid)+"\n"
-    return braid,simplify_braid(braid),braid_string,index,euler_char_lower_bound,euler_char_upper_bound
+    log=log+"Simplified braid "+str(simplified_braid)+"\n"
+    log=log+"Braid string "+braid_string+"\n"
+    return braid,simplified_braid,braid_string,index,euler_char_lower_bound,euler_char_upper_bound
 
 def bounded_random_braid(bound=30,seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_total_bands=8,conjugate_length_st_dev=0.5,sgr_st_dev=0.5,seed_sign=0):
     current_length=bound+1
