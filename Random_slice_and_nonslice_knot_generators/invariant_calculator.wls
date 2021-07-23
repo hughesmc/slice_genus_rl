@@ -2,7 +2,7 @@
 
 Print["YES"]
 
-<<KnotTheory`
+<< KnotTheory`
 
 
 If[Length[$ScriptCommandLine] >= 3, 
@@ -30,9 +30,14 @@ coeffTriples[pol_, x_Symbol, y_Symbol] :=
 scriptPath = ExpandFileName[First[$ScriptCommandLine]];
 scriptName = Last[FileNameSplit[ scriptPath ]];
 
+
 Print["Mathematica ",unformattedBraidWord]
 
 tempFile=StringReplace[scriptPath,scriptName -> StringJoin["tempfiles/invariants",ToString[identifier],".txt"]]
+
+originalLocation=Directory[]
+
+temLocation=StringJoin[originalLocation,"/mathematica_support/",ToString[identifier],"/"]
   
 braidWord=ToExpression[StringSplit[StringTrim[unformattedBraidWord, ("[" | "]")], ","]]
 
@@ -48,6 +53,8 @@ signature=KnotSignature[BR[index,braidWord]]
 
 determinant=Abs[alexanderPolynomial/.t->-1]
 
+SetDirectory[tempLocation]
+
 khovanovPolynomial = Kh[BR[index,braidWord]][q, t]; 
    
 khovanovPolynomialList = Sort[coeffTriples[khovanovPolynomial, q, t]]; 
@@ -57,5 +64,7 @@ jonesPolynomialList = Sort[coeffPairs[Simplify[Factor[khovanovPolynomial /. t ->
 jonesPolynomialString = StringReplace[ToString[jonesPolynomial], {"{" -> "[", "}" -> "]"}];
 
 khovanovPolynomialString = StringReplace[ToString[khovanovPolynomial], {"{" -> "[", "}" -> "]"}];
+
+SetDirectory[originalLocation]
 
 Export[tempFile,StringJoin[ToString[arf],"\[NewLine]",ToString[signature],"\[NewLine]",ToString[determinant],"\[NewLine]",ToString[alexanderPolynomialList],"\[NewLine]",ToString[jonesPolynomialList],"\[NewLine]",ToString[khovanovPolynomialList]]]
