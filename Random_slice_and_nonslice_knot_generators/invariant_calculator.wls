@@ -37,7 +37,7 @@ tempFile=StringReplace[scriptPath,scriptName -> StringJoin["tempfiles/invariants
 
 originalLocation=Directory[]
 
-temLocation=StringJoin[originalLocation,"/mathematica_support/",ToString[identifier],"/"]
+tempLocation=StringJoin[originalLocation,"/mathematica_support/",ToString[identifier],"/"]
   
 braidWord=ToExpression[StringSplit[StringTrim[unformattedBraidWord, ("[" | "]")], ","]]
 
