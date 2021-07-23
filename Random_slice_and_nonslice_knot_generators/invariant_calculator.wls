@@ -1,7 +1,5 @@
 #!/usr/bin/env wolframscript
 
-Print["YES"]
-
 << KnotTheory`
 
 
