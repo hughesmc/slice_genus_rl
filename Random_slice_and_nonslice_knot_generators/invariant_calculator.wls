@@ -1,6 +1,8 @@
 #!/usr/bin/env wolframscript
 
-<< KnotTheory`
+Print["YES"]
+
+<<KnotTheory`
 
 
 If[Length[$ScriptCommandLine] >= 3, 

@@ -765,6 +765,8 @@ date_time = now.strftime("%m_%d_%Y_%H_%M_%S_%f_")
 
 identifier=date_time+str(np.random.choice(999999999))
 
+os.mkdir("mathematica_support/"+identifier)
+
 print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
