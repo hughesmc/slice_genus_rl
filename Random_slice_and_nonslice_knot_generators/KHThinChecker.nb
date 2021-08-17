@@ -1,0 +1,143 @@
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[         0,          0]
+NotebookDataLength[      5167,        142]
+NotebookOptionsPosition[      4688,        121]
+NotebookOutlinePosition[      5055,        137]
+CellTagsIndexPosition[      5012,        134]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"fileNameList", "=", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<~/Desktop/KHWidthComputations/knot_table_july31_largercutoff.csv\>\"\
+", ",", "\"\<~/Desktop/KHWidthComputations/knot_table_july25.csv\>\""}], 
+     "}"}]}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Table", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"file", "=", 
+      RowBox[{"Import", "[", "fileName", "]"}]}], ";", "\[IndentingNewLine]", 
+     
+     RowBox[{"AppendTo", "[", 
+      RowBox[{
+       RowBox[{"file", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", "\"\<Width\>\""}], "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"AppendTo", "[", 
+      RowBox[{
+       RowBox[{"file", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", "\"\<Khovanov Thin\>\""}], "]"}],
+      ";", "\[IndentingNewLine]", 
+     RowBox[{"Table", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"file", "[", 
+           RowBox[{"[", 
+            RowBox[{"jjj", ",", "13"}], "]"}], "]"}], "!=", 
+          "\"\<[[-(-),--------------------]]\>\""}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"KhString", "=", 
+           RowBox[{"StringReplace", "[", 
+            RowBox[{
+             RowBox[{"file", "[", 
+              RowBox[{"[", 
+               RowBox[{"jjj", ",", "13"}], "]"}], "]"}], ",", 
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"\"\<[\>\"", "\[Rule]", "\"\<{\>\""}], ",", 
+               RowBox[{"\"\<]\>\"", "\[Rule]", "\"\<}\>\""}]}], "}"}]}], 
+            "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{"KhList", "=", 
+           RowBox[{"ToExpression", "[", "KhString", "]"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"diagonals", "=", 
+           RowBox[{"Sort", "[", 
+            RowBox[{"Table", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"monomial", "[", 
+                RowBox[{"[", "1", "]"}], "]"}], "-", 
+               RowBox[{"2", "*", 
+                RowBox[{"monomial", "[", 
+                 RowBox[{"[", "2", "]"}], "]"}]}]}], ",", 
+              RowBox[{"{", 
+               RowBox[{"monomial", ",", "KhList"}], "}"}]}], "]"}], "]"}]}], 
+          ";", "\[IndentingNewLine]", 
+          RowBox[{"width", "=", 
+           RowBox[{
+            RowBox[{"Max", "[", "diagonals", "]"}], "-", 
+            RowBox[{"Min", "[", "diagonals", "]"}], "+", "1"}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"width", "\[LessEqual]", "3"}], ",", 
+            RowBox[{"KhThin", "=", "1"}], ",", 
+            RowBox[{"KhThin", "=", "0"}]}], "]"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"AppendTo", "[", 
+           RowBox[{
+            RowBox[{"file", "[", 
+             RowBox[{"[", "jjj", "]"}], "]"}], ",", "width"}], "]"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"AppendTo", "[", 
+           RowBox[{
+            RowBox[{"file", "[", 
+             RowBox[{"[", "jjj", "]"}], "]"}], ",", "KhThin"}], "]"}]}]}], 
+        "]"}], ",", "\[IndentingNewLine]", 
+       RowBox[{"{", 
+        RowBox[{"jjj", ",", "2", ",", 
+         RowBox[{"Length", "[", "file", "]"}]}], "}"}]}], "]"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"newFileName", "=", 
+      RowBox[{"StringJoin", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"StringSplit", "[", 
+          RowBox[{"fileName", ",", "\"\<.\>\""}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", "\"\<_with_KH_width.csv\>\""}], 
+       "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Export", "[", 
+      RowBox[{"newFileName", ",", "file"}], "]"}]}], "\[IndentingNewLine]", 
+    ",", 
+    RowBox[{"{", 
+     RowBox[{"fileName", ",", "fileNameList"}], "}"}]}], "]"}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.8381610354181223`*^9, 3.838161073596591*^9}, {
+  3.8381611392617197`*^9, 3.838161182681356*^9}, {3.838161431041402*^9, 
+  3.838161431826293*^9}, {3.838161841634252*^9, 3.8381618878215313`*^9}, {
+  3.838162194874339*^9, 3.838162330517344*^9}},
+ CellLabel->"In[75]:=",ExpressionUUID->"e65b7e46-f2b1-4aaa-b135-a2ba8819c2b1"]
+},
+WindowSize->{878, 1005},
+WindowMargins->{{6, Automatic}, {Automatic, 0}},
+Magnification:>1.25 Inherited,
+FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[400, 13, 4284, 106, 670, "Input",ExpressionUUID->"e65b7e46-f2b1-4aaa-b135-a2ba8819c2b1"]
+}
+]
+*)
+
