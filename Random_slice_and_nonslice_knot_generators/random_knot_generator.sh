@@ -25,4 +25,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 module load python
 module load mathematica
 
-python random_knot_generator_debug.py
+python random_knot_generator.py

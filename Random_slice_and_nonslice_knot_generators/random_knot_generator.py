@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import csv
 import random,re
+from datetime import datetime
 
 
 def random_band(index,start,end,band_sign=0,conjugate_length_st_dev=0.8,sgr_st_dev=0.6):
@@ -108,6 +109,7 @@ def insert_strand(braid,index,location,sign):
     determined by the argument location.  The argument sign determines whether this strand will pass on top 
     of, or below the existing braid.
     """
+    global log
     if location>index+1 or location<1:
       print('Location of inserted strand out of range.')
       return
@@ -127,6 +129,8 @@ def insert_strand(braid,index,location,sign):
             iii=iii+3
         else:
             iii=iii+1
+    log=log+"New strand inserted at position "+str(location)+"\n"
+    log=log+str(braid)+"\n"
     return braid
 
 
@@ -201,6 +205,7 @@ def insert_random_band(braid,index,start,end,band_sign,conjugate_length_st_dev=0
     Insert a random band into a given braid, with a given sign, at a random point in the braid word, connecting 
     strand numbers start and end (labeled in relation to their positions at the beginning of the braid word).
     """
+    global log
     # If start strand number is greater than the end strand number, swap the two values.
     if start>end:
         temp=start
@@ -216,6 +221,8 @@ def insert_random_band(braid,index,start,end,band_sign,conjugate_length_st_dev=0
     # Construct a random band with specified start and end strands, and add it to the braid.
     band=random_band(index,new_start,new_end,band_sign,conjugate_length_st_dev,sgr_st_dev)
     braid[position:position]=band
+    log=log+"Inserted band "+str(band)+" at position "+str(position)+"\n"
+    log=log+str(braid)+"\n"
     return braid
 
 
@@ -268,6 +275,7 @@ def simplify_R2(braid,starting_position=0,remove_all=False):
     If the option remove_all is True it will remove all such pairs; if not, it only removes the first one it 
     encounters.
     """
+    global log
     new_braid=braid.copy()
     old_braid=[]
     position=starting_position
@@ -282,7 +290,9 @@ def simplify_R2(braid,starting_position=0,remove_all=False):
                 smaller_index=min((position+jjj)%len(new_braid),(position+jjj+1)%len(new_braid))
                 larger_index=max((position+jjj)%len(new_braid),(position+jjj+1)%len(new_braid))
                 new_braid.pop(larger_index)
-                new_braid.pop(smaller_index)
+                new_braid.pop(smaller_index) 
+                log=log+"Removed R2 canceling pair at position "+str((position+jjj)%len(new_braid))+"\n"
+                log=log+str(new_braid)+"\n"
                 # If remove_all is set to False stop after one such removal, otherwise continue until no such 
                 # cancelling pairs remain.
                 if not remove_all:
@@ -296,6 +306,7 @@ def add_random_R2(braid,index):
     """
     Add a random pair of cancelling crossings somewhere in the braid word.
     """
+    global log
     new_braid=braid.copy()
     # Specify the location and index of the new crossing to be added.
     location=np.random.choice(len(braid)+2)
@@ -307,9 +318,13 @@ def add_random_R2(braid,index):
     if location==len(braid)+1:
         new_braid[index:index]=[sign*crossing]
         new_braid[0:0]=[-sign*crossing]
+        log=log+"Added R2 canceling pair at position "+str(location)+"\n"
+        log=log+str(braid)+"\n"
     # Otherwise, add both at the specified location.
     else:
         new_braid[location:location]=[sign*crossing,-sign*crossing]
+        log=log+"Added R2 canceling pair at position "+str(location)+"\n"
+        log=log+str(braid)+"\n"
     return new_braid
 
 
@@ -318,9 +333,12 @@ def random_cut(braid):
     """
     Split the braid word at a random point, and concatenate the two pieces in reverse order.
     """
+    global log
     new_braid=braid.copy()
     location=np.random.choice(len(braid))
     new_braid=new_braid[location:]+new_braid[:location]
+    log=log+"Cut braid at position "+str(location)+"\n"
+    log=log+str(braid)+"\n"
     return new_braid
 
 
@@ -329,6 +347,7 @@ def apply_R3(braid,starting_position=0):
     Scan through the braid word, starting at the specified starting position, find the first place that an R3 braid
     relation can be applied, and apply it.
     """
+    global log
     new_braid=braid.copy()
     position=starting_position
     for iii in range(len(braid)):
@@ -341,6 +360,8 @@ def apply_R3(braid,starting_position=0):
             new_braid[loc1]=letter2
             new_braid[loc3]=letter2
             new_braid[loc2]=letter1
+            log=log+"Applied R3 move at location "+str(loc1)+"\n"
+            log=log+str(new_braid)+"\n"
         elif new_braid[loc1]==-new_braid[loc3] and np.abs(np.abs(new_braid[loc1])-np.abs(new_braid[loc2]))==1:
             letter1=new_braid[loc1]
             letter2=new_braid[loc2]
@@ -349,6 +370,8 @@ def apply_R3(braid,starting_position=0):
             new_braid[loc1]=np.abs(letter2)*np.sign(letter3)
             new_braid[loc2]=sign*letter1
             new_braid[loc3]=sign*letter2
+            log=log+"Applied R3 move at location "+str(loc1)+"\n"
+            log=log+str(new_braid)+"\n"
     return new_braid
 
 
@@ -380,6 +403,7 @@ def remove_min_R1(braid):
     Note: Removing such R1 'kinks' is necessary for producing correct answers in software like KnotJob and the 
     Mathematica KnotTheory package.
     """
+    global log
     b=np.copy(braid)
     oldLength=len(b)
     newLength=0
@@ -395,6 +419,8 @@ def remove_min_R1(braid):
             # For all remaining crossings in the braid word, adjust them to account for the deleted R1 move.
             for jjj in range(len(b)):
                 b[jjj]=b[jjj]-np.sign(b[jjj])
+            log=log+"Removed a minimum R1 crossing at location "+str(location)+"\n"
+            log=log+str(b)+"\n"
         newLength=len(b)
     return b
 
@@ -405,6 +431,7 @@ def remove_max_R1(braid):
     Similar to the function above, this searches for R1 moves (Markov stabilizations) that can be removed on the 
     right side of the braid.
     """
+    global log
     b=np.copy(braid)
     oldLength=len(b)
     newLength=0
@@ -415,6 +442,8 @@ def remove_max_R1(braid):
         if len(np.where(np.abs(b)==max(np.abs(b)))[0])==1:
             location=np.where(np.abs(b)==max(np.abs(b)))[0][0]
             b=np.delete(b,location)
+            log=log+"Removed a maximum R1 crossing at location "+str(location)+"\n"
+            log=log+str(b)+"\n"
         newLength=len(b)
     return b
 
@@ -425,6 +454,7 @@ def remove_R2(braid):
     Scans through the braid and removes all pairs of cancelling adjacent crossings.  This should be equivalent to
     the simplify_R2 function with the remove_all option set to True.  Not sure why I coded it up twice.
     """
+    global log
     b=np.copy(braid)
     oldLength=len(b)
     newLength=0
@@ -433,10 +463,14 @@ def remove_R2(braid):
         if b[oldLength-1]==-b[0]:
             b=np.delete(b,np.array([oldLength-1]))
             b=np.delete(b,np.array([0]))
+            log=log+"Removed R2 canceling pair at position "+str(oldLength-1)+"\n"
+            log=log+str(b)+"\n"
         jjj=0
         while jjj<len(b)-1:
             if b[jjj]==-b[jjj+1]:
                 b=np.delete(b,np.array([jjj,jjj+1]))
+                log=log+"Removed R2 canceling pair at position "+str(jjj)+"\n"
+                log=log+str(b)+"\n"
             else:
                 jjj+=1
         newLength=len(b)
@@ -480,6 +514,7 @@ def pull_seed_braid(slice_knot="maybe"):
     Opens a file from KnotInfo corresponding to slice or nonslice knots, and return a braid representative for a 
     knot along with the lower and upper bounds on the slice Euler characteristic.
     """
+    global log
     if slice_knot==True:
         file=SliceFile
     elif slice_knot==False:
@@ -499,6 +534,8 @@ def pull_seed_braid(slice_knot="maybe"):
     loc=np.random.choice(len(c))
     braid=c[loc]
     index=max(np.abs(braid))+1
+    log=log+"Pulled the seed braid "+str(braid)+" with euler characteristic lower bound "+str(euler_char_lower)+" and euler characteristic upper bound "+str(euler_char_upper)+"\n"
+    log=log+str(braid)+"\n"
     return braid,index,euler_char_lower,euler_char_upper
 
 
@@ -614,6 +651,7 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
     """
     Creates a random braid. 
     """
+    global log
     assert max_initial_index-1 <= max_total_bands, "The max initial index must be no greater than the max number of total bands plus 1." 
     if seed_braid=="maybe":
         seed_braid=np.random.choice([True,False])
@@ -659,7 +697,7 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
         braid,index,band_connectivity_list=initial_quasipositive_braid(initial_bands,index,seed_sign,initial_band_connectivity_list,conjugate_length_st_dev,sgr_st_dev)
         ######print("POST",initial_bands,cobordism_bands,band_connectivity_list,permutation_cycle_test(braid,index))
         euler_char_lower_bound=index-initial_bands-cobordism_bands
-        euler_char_upper_bound=index-initial_bands+cobordism_bands
+        euler_char_upper_bound=min(1,index-initial_bands+cobordism_bands)
     if seed_braid:
         ######print("B")
         # Pull a seed braid from one of the lists.
@@ -684,7 +722,7 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
         cobordism_negative_bands=cobordism_bands-cobordism_positive_bands
         band_connectivity_list=band_permutation_connectivity(index,cobordism_bands,braid)
         euler_char_lower_bound=euler_char_lower_bound-cobordism_bands
-        euler_char_upper_bound=euler_char_upper_bound+cobordism_bands
+        euler_char_upper_bound=min(1,euler_char_upper_bound+cobordism_bands)
     permutation=permutation_cycle_test(braid,index)
     # Add Markov bands to the braid.
     braid,index=add_markov_bands(braid,index,markov_negative_bands,markov_positive_bands,conjugate_length_st_dev,sgr_st_dev)
@@ -692,13 +730,13 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
     braid,index,band_connectivity_list=add_cobordism_bands(braid,index,cobordism_negative_bands,cobordism_positive_bands,band_connectivity_list,conjugate_length_st_dev,sgr_st_dev)
     # Select a random number of R3 moves to apply to the resulting braid, then for each one select a random
     # location in the braid and apply the move.
-    for lll in range(np.random.choice(range(len(braid)))):
+    for lll in range(np.random.choice(range(len(braid)//4+1))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     # Remove all cancelling pairs via R2 moves.
     braid=simplify_R2(braid,remove_all=True)
     # Repeat the proceedure of applying R3 moves randomly.
-    for lll in range(np.random.choice(range(len(braid)//2+1))):
+    for lll in range(np.random.choice(range(len(braid)//4+1))):
         k=np.random.choice(len(braid))
         braid=apply_R3(braid,k)
     # Remove any new R2 moves that were introduced.
@@ -706,8 +744,12 @@ def random_braid(seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_t
     # Randomly cut the braid.
     braid=random_cut(braid)
     # Convert a simplified version of the braid to a string for use in KnotJob.
-    braid_string=braid_word_to_string(simplify_braid(braid),index)
-    return braid,simplify_braid(braid),braid_string,index,euler_char_lower_bound,euler_char_upper_bound
+    simplified_braid=simplify_braid(braid)
+    braid_string=braid_word_to_string(simplified_braid,index)
+    log=log+"Final braid "+str(braid)+"\n"
+    log=log+"Simplified braid "+str(simplified_braid)+"\n"
+    log=log+"Braid string "+braid_string+"\n"
+    return braid,simplified_braid,braid_string,index,euler_char_lower_bound,euler_char_upper_bound
 
 def bounded_random_braid(bound=30,seed_braid="maybe",slice_knot="maybe",max_initial_index=5,max_total_bands=8,conjugate_length_st_dev=0.5,sgr_st_dev=0.5,seed_sign=0):
     current_length=bound+1
@@ -716,25 +758,32 @@ def bounded_random_braid(bound=30,seed_braid="maybe",slice_knot="maybe",max_init
         current_length=len(braid)
     return braid,simplified_braid,braid_string,index,euler_char_lower_bound,euler_char_upper_bound 
 
-column_names=["Braid word","Simplified braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature","Determinant","Alexander Polynomial","Jones Polynomial","Khovanov Polynomial"]
+column_names=["Braid word","Simplified braid word","Braid string","Braid index","Euler characteristic lower bound","Euler characteristic upper bound","Rasmussen s-invariant","Arf invariant","Signature","Determinant","Alexander Polynomial","Jones Polynomial","Khovanov Polynomial","Slice genus lower bound","Slice genus upper bound"]
 
+now=datetime.now()
+date_time = now.strftime("%m_%d_%Y_%H_%M_%S_%f_")
 
-identifier=str(np.random.choice(999999999))
+identifier=date_time+str(np.random.choice(999999999))
+
+os.mkdir("mathematica_support/"+identifier)
 
 print("Identifier string = ",identifier)
 
 #non_slice_knots=pd.DataFrame(columns=column_names)
 
 max_braid_length=25
-number_of_braids=500
+number_of_braids=10000
 
 with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_file:
 	writer = csv.writer(csv_file, delimiter=',')
 	writer.writerow(column_names)
 
 	jjj=1
+	
+	error_counter=0
 
 	while jjj<=number_of_braids:
+		log=""
 		braid=random_braid()
 		braid_list=list(braid)
 		if len(braid[1])<=max_braid_length:
@@ -750,47 +799,69 @@ with open("output/BraidsInvariants"+identifier+".csv", "w", newline='') as csv_f
 					s_invariant_string=string.split(":")[-1]
 					s_invariant=int(s_invariant_string.replace(" ","").replace("\n",""))
 					braid_list.append(s_invariant)
+					os.system("./invariant_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
+					if os.path.isfile("tempfiles/invariants"+identifier+".txt"):
+						output_file_arf_sig=open("tempfiles/invariants"+identifier+".txt")
+						lines_arf_sig=output_file_arf_sig.readlines()
+						arf=int(lines_arf_sig[0].replace(" ","").replace("\n",""))
+						signature=int(lines_arf_sig[1].replace(" ","").replace("\n",""))
+						determinant=int(lines_arf_sig[2].replace(" ","").replace("\n",""))
+						alexander=str(lines_arf_sig[3].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						jones=str(lines_arf_sig[4].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						khovanov=str(lines_arf_sig[5].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
+						lower_slice_bound=max((1-braid[5])/2,np.abs(s_invariant)/2,np.abs(signature)/2,arf)
+						upper_slice_bound=(1-braid[4])/2
+						braid_list.append(arf)
+						braid_list.append(signature)
+						braid_list.append(determinant)
+						braid_list.append(alexander)
+						braid_list.append(jones)
+						braid_list.append(khovanov)
+						braid_list.append(lower_slice_bound)
+						braid_list.append(upper_slice_bound)
+						log=log+"arf = "+str(arf)+"\n"
+						log=log+"signature = "+str(signature)+"\n"
+						log=log+"determinant = "+str(determinant)+"\n"
+						log=log+"alexander polynomial = "+str(alexander)+"\n"
+						log=log+"jones polynomial = "+str(jones)+"\n"
+						log=log+"khovanov polynomial = "+str(khovanov)+"\n"
+						log=log+"lower slice bound = "+str(lower_slice_bound)+"\n"
+						log=log+"upper slice bound = "+str(upper_slice_bound)+"\n"
+						if lower_slice_bound>upper_slice_bound:
+							log=log+"Error: slice genus lower bound is greater than slice genus upper bound."
+							log_file=open("logfiles/type_A_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file.write(log)
+							log_file.close()
+							error_counter=error_counter+1
+						if jones=="[[0,1]]" and np.abs(arf)+np.abs(signature)+np.abs(determinant-1)+np.abs(lower_slice_bound)+np.abs(s_invariant)>0:
+							log=log+"Error: trivial Jones polynomial but other nontrivial invariants."
+							log_file=open("logfiles/type_B_error_log"+identifier+"error"+str(error_counter)+".txt", "w")
+							log_file.write(log)
+							log_file.close()
+							error_counter=error_counter+1
+						os.remove("tempfiles/invariants"+identifier+".txt")
+						writer.writerow(braid_list)
+						if jjj%10==0:
+							print("jjj = ",jjj)
+							csv_file.flush()
+						jjj=jjj+1
 					os.remove("tempfiles/braidword"+identifier+".brd_s0")
-					if len(braid_list[1])>2:
-						os.system("./invariant_calculator.wls "+str(braid_list[1]).replace(" ","")+" "+identifier)
-						if os.path.isfile("tempfiles/invariants"+identifier+".txt"):
-							output_file_arf_sig=open("tempfiles/invariants"+identifier+".txt")
-							lines_arf_sig=output_file_arf_sig.readlines()
-							arf=int(lines_arf_sig[0].replace(" ","").replace("\n",""))
-							signature=int(lines_arf_sig[1].replace(" ","").replace("\n",""))
-							determinant=int(lines_arf_sig[2].replace(" ","").replace("\n",""))
-							alexander=str(lines_arf_sig[3].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							jones=str(lines_arf_sig[4].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							khovanov=str(lines_arf_sig[5].replace(" ","").replace("\n","").replace("{","[").replace("}","]"))
-							braid_list.append(arf)
-							braid_list.append(signature)
-							braid_list.append(determinant)
-							braid_list.append(alexander)
-							braid_list.append(jones)
-							braid_list.append(khovanov)
-							os.remove("tempfiles/invariants"+identifier+".txt")
-					else:
-						braid_list.append(0)
-						braid_list.append(0)
-						braid_list.append(0)
-						braid_list.append(1)
-						braid_list.append("[[0,1]]")
-						braid_list.append("[[0, 1]]")
-						braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
+					os.remove("tempfiles/braidword"+identifier+".brd")
 			else:
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(0)
 				braid_list.append(1)
 				braid_list.append("[[0,1]]")
-				braid_list.append("[[0, 1]]")
-				braid_list.append("[[-1, 0, 1], [1, 0, 1]]")
-			#non_slice_knots.loc[len(non_slice_knots)]=braid_list
-			writer.writerow(braid_list)
-			if jjj%10==0:
-				print("jjj = ",jjj)
-				csv_file.flush()
-			jjj=jjj+1
+				braid_list.append("[[0,1]]")
+				braid_list.append("[[-1,0,1],[1,0,1]]")
+				braid_list.append(0)
+				braid_list.append(0)
+				writer.writerow(braid_list)
+				if jjj%10==0:
+					print("jjj = ",jjj)
+					csv_file.flush()
+				jjj=jjj+1
 	csv_file.flush()
         
-#non_slice_knots.to_csv("output/nonslice"+identifier+".csv",index=False)
+
